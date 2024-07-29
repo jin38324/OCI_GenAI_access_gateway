@@ -71,7 +71,7 @@ List of OCI Generative AI Service models currently supported:
 - Docker deployment
 
 
-# Cahnge log
+# Change log
 - 20240729: first commit;
 
 # Feature test
