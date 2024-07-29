@@ -68,6 +68,7 @@ List of OCI Generative AI Service models currently supported:
 # Features under development
 
 - Tool call
+- Docker deployment
 
 
 # Cahnge log
