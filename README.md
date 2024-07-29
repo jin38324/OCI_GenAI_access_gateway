@@ -8,7 +8,7 @@ With this project, you can quickly integrate any application that supports a cus
 
 ---
 
-Oracle 云基础设施 (OCI) 生成式 AI 是一种完全托管的服务，可将这些多功能语言模型集成到各种用例中。
+**Oracle 云基础设施 (OCI) 生成式 AI** 是一种完全托管的服务，可将这些多功能语言模型集成到各种用例中。
 
 Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对于很多已经包装好的项目，需要一些代码修改工作量，以集成OCI上的生成式AI服务。
 
@@ -20,12 +20,55 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 
 # Quick Start
 
-1. Clone this repository ;
+1. Clone this repository and set prerequisites;
 
 2. Run this app:
 
-```bash
-uvicorn api.app:app --host 0.0.0.0 --port 80 --reload
-```
+    ```bash
+    uvicorn api.app:app --host 0.0.0.0 --port 8088 --reload
+    ```
 
 3. Config your application like this:
+![alt text](image/setting.png)
+
+It's OK now!
+
+![alt text](image/chat.png)
+
+
+
+# Prerequisites
+
+1. In this project, we use OCI python SDK to call cloud services. 
+
+    1.1 `pip install oci`
+
+    1.2 create config file on OCI console, follow this [SDK and CLI Configuration File](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig.htm)
+
+    1.3 Notice that we add `compartment_id` in config file.
+
+2. You can modify the `api/setting.py` file to custom config file location and DEFAULT_API_KEYS.
+
+3. It's done. You can edit other settings if you want.
+
+# Models
+List of OCI Generative AI Service models currently supported:
+
+**Chat models**:
+- meta.llama-3-70b-instruct
+- cohere.command-r-plus
+- cohere.command-r-16k
+
+**Embedding models**:
+- cohere.embed-english-v3.0
+- cohere.embed-multilingual-v3.0
+- cohere.embed-english-light-v3.0
+- cohere.embed-multilingual-light-v3.0
+
+# Features under development
+
+- Tool call
+
+
+# Cahnge log
+- 20240729: first commit;
