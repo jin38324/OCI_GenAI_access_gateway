@@ -58,6 +58,7 @@ List of OCI Generative AI Service models currently supported:
 - meta.llama-3-70b-instruct
 - cohere.command-r-plus
 - cohere.command-r-16k
+- Dedicated AI Cluster (use `Endpoint Id` as `model`)
 
 **Embedding models**:
 - cohere.embed-english-v3.0
@@ -72,6 +73,7 @@ List of OCI Generative AI Service models currently supported:
 
 
 # Change log
+- 20240815: Add Dedicated AI Cluster support;
 - 20240729: first commit;
 
 # Feature test

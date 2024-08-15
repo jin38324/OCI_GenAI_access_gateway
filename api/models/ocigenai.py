@@ -320,12 +320,17 @@ class OCIGenAIModel(BaseChatModel):
                             "numGenerations": chat_request.n,
                             "topK":-1
                             }
-            chatRequest.update(inference_config)
+            chatRequest.update(inference_config)        
         
+
+        if chat_request.model.startswith("ocid1.generativeaiendpoint"):
+            servingMode ={"endpointId": chat_request.model, "servingType": "DEDICATED"}
+        else:
+            servingMode ={"modelId": chat_request.model, "servingType": "ON_DEMAND"}
                       
         chat_detail = {
             "compartmentId": COMPARTMENT_ID,
-            "servingMode": {"modelId": chat_request.model, "servingType": "ON_DEMAND"},
+            "servingMode": servingMode,
             "chatRequest": chatRequest
             }
 
