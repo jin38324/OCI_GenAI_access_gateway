@@ -1,7 +1,9 @@
-** instance principal supported
+**instance principal supported
 
 in your policy, define
+```
 allow dynamic-group <xxxx> to manage generative-ai-family in tenancy
+```
 xxxx is your dynamic-group that indicated your vm or other resources
 
 in api/settings.py, define 
