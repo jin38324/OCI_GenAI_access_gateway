@@ -7,7 +7,7 @@ from abc import ABC
 from typing import AsyncIterable, Iterable, Literal
 
 import oci
-from api.setting import OCI_CONFIG, COMPARTMENT_ID
+from api.setting import OCI_CONFIG, COMPARTMENT_ID,client_kwargs,AUTH_TYPE
 
 import numpy as np
 # import requests
@@ -45,9 +45,24 @@ logging.basicConfig(format='%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)
     level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+def init_oci_auth(auth_type):
+    finalConfig = {}
+    if auth_type == 'API_KEY':
+        ociconfig = OCI_CONFIG
+        client_kwargs.update({'config': ociconfig}) 
 
+    if auth_type == 'INSTANCE_PRINCIPAL':
+        signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
+        client_kwargs.update({'signer': signer}) 
 
-generative_ai_inference_client = oci.generative_ai_inference.GenerativeAiInferenceClient(OCI_CONFIG)
+    return finalConfig
+
+init_oci_auth  (AUTH_TYPE)
+
+generative_ai_inference_client = oci.generative_ai_inference.GenerativeAiInferenceClient(
+                **client_kwargs
+            )
+
 
 SUPPORTED_OCIGENAI_EMBEDDING_MODELS = {
     'cohere.embed-english-light-v3.0':'Cohere Embed English Light 3.0',

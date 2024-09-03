@@ -1,3 +1,18 @@
+# instance principal supported
+
+in your policy, define
+```
+allow dynamic-group <xxxx> to manage generative-ai-family in tenancy
+```
+xxxx is your dynamic-group that indicated your vm or other resources
+
+in api/setting.py, define 
+```
+AUTH_TYPE=INSTANCE_PRINCIPAL
+COMPARTMENT_ID = 'ocid1.compartment.oc1..asddasd'
+```
+
+
 **Oracle Cloud Infrastructure (OCI) Generative AI Service** is a fully managed service that integrates these versatile language models into a variety of use cases.
 
 Oracle has released SDK that makes it easy to call OCI Generative AI services. However, for many packaged projects, some code modification is required to integrate the OCI Generative AI services.
