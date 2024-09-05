@@ -1,18 +1,3 @@
-# instance principal supported
-
-in your policy, define
-```
-allow dynamic-group <xxxx> to manage generative-ai-family in tenancy
-```
-xxxx is your dynamic-group that indicated your vm or other resources
-
-in api/setting.py, define 
-```
-AUTH_TYPE=INSTANCE_PRINCIPAL
-COMPARTMENT_ID = 'ocid1.compartment.oc1..asddasd'
-```
-
-
 **Oracle Cloud Infrastructure (OCI) Generative AI Service** is a fully managed service that integrates these versatile language models into a variety of use cases.
 
 Oracle has released SDK that makes it easy to call OCI Generative AI services. However, for many packaged projects, some code modification is required to integrate the OCI Generative AI services.
@@ -54,17 +39,38 @@ It's OK now!
 
 # Prerequisites
 
-1. In this project, we use OCI python SDK to call cloud services. 
+1. `pip install oci`
 
-    1.1 `pip install oci`
+The next thing is create access authentication for OCI. There are two ways to achieve this:
+- Use API Key. This need a little effort, but easy to understand and can be used everywhere
+- Use instance principal. This is easy to set but only available on OCI.
 
-    1.2 create config file on OCI console, follow this [SDK and CLI Configuration File](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig.htm)
+## Use API Key    
 
-    1.3 Notice that we add `compartment_id` in config file.
+    2.1 create config file on OCI console, follow this [SDK and CLI Configuration File](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig.htm)
+    
+    2.2 Notice that we add `compartment_id` in config file.
 
-2. You can modify the `api/setting.py` file to custom config file location and DEFAULT_API_KEYS.
+## instance principal setting
 
-3. It's done. You can edit other settings if you want.
+    2.1 in your policy, define
+    ```
+    allow dynamic-group <xxxx> to manage generative-ai-family in tenancy
+    ```
+    xxxx is your dynamic-group that indicated your vm or other resources
+    
+    2.2 in api/setting.py, define 
+    ```
+    AUTH_TYPE=INSTANCE_PRINCIPAL
+    COMPARTMENT_ID = 'ocid1.compartment.oc1..asddasd'
+    ```
+    
+You can modify the `api/setting.py` file to custom config file location and DEFAULT_API_KEYS.
+
+It's done. You can edit other settings if you want.
+
+
+
 
 # Models
 List of OCI Generative AI Service models currently supported:
