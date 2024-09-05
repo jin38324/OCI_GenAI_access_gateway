@@ -39,31 +39,33 @@ It's OK now!
 
 # Prerequisites
 
-1. `pip install oci`
+## 1. Install oci package
+`pip install oci`
 
+## 2. Set authentication
 The next thing is create access authentication for OCI. There are two ways to achieve this:
 - Use API Key. This need a little effort, but easy to understand and can be used everywhere
 - Use instance principal. This is easy to set but only available on OCI.
 
-2. Option1: Use API Key    
+**Option1: Use API Key**    
 
-2.1 create config file on OCI console, follow this [SDK and CLI Configuration File](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig.htm)
+create config file on OCI console, follow this [SDK and CLI Configuration File](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig.htm)
 
-2.2 Notice that we add `compartment_id` in config file.
+Notice that we add `compartment_id` in config file.
 
-2. Option2:instance principal setting
+**Option2:instance principal setting**
 
-2.1 in your policy, define
+in your policy, define
 ```
 allow dynamic-group <xxxx> to manage generative-ai-family in tenancy
 ```
 xxxx is your dynamic-group that indicated your vm or other resources
 
-2.2 in api/setting.py, define 
+in api/setting.py, define 
 ```
 AUTH_TYPE=INSTANCE_PRINCIPAL
 COMPARTMENT_ID = 'ocid1.compartment.oc1..asddasd'
-    ```
+```
     
 You can modify the `api/setting.py` file to custom config file location and DEFAULT_API_KEYS.
 
