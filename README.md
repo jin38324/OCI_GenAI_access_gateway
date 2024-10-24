@@ -18,6 +18,17 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 
 *This is a project inspired by [aws-samples/bedrock-access-gateway](https://github.com/aws-samples/bedrock-access-gateway/tree/main)*
 
+# Change log
+- 20241022: Support LLM service deployed through the AI ​​Quick Action of OCI Data Science; Optimize model configuration;
+- 20240905: Support Instance principals auth;
+- 20240815: Add Dedicated AI Cluster support;
+- 20240729: first commit;
+
+# Features under development
+- Tool call
+- Docker deployment
+- Multi-modal 
+
 # Quick Start
 
 1. Clone this repository and set prerequisites;
@@ -25,7 +36,7 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 2. Run this app:
 
     ```bash
-    uvicorn api.app:app --host 0.0.0.0 --port 8088 --reload
+    python app.py
     ```
 
 3. Config your application like this:
@@ -36,72 +47,73 @@ It's OK now!
 ![alt text](image/chat.png)
 
 
+# Set Prerequisites
 
-# Prerequisites
-
-## 1. Install oci package
-`pip install oci`
+## 1. Install python packages
+`pip install -r requirements.txt`
 
 ## 2. Set authentication
-The next thing is create access authentication for OCI. There are two ways to achieve this:
+Create access authentication for OCI. There are two ways to achieve this:
 - Use API Key. This need a little effort, but easy to understand and can be used everywhere
-- Use instance principal. This is easy to set but only available on OCI.
+- Use instance principal. This is easy to set but only available on OCI host machines.
 
 **Option1: Use API Key**    
 
-create config file on OCI console, follow this [SDK and CLI Configuration File](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig.htm)
+create config file on OCI console, follow this [SDK and CLI Configuration File](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig.htm).
 
-Notice that we add `compartment_id` in config file.
+Set `config.py` file, point to your config location,like `OCI_CONFIG_FILE = "~/.oci/config"`.
 
-**Option2:instance principal setting**
+**Option2: Use instance principal setting**
 
-in your policy, define
+Set [OCI policy](https://docs.oracle.com/en-us/iaas/Content/Identity/policieshow/Policy_Basics.htm), define
 ```
 allow dynamic-group <xxxx> to manage generative-ai-family in tenancy
 ```
 xxxx is your dynamic-group that indicated your vm or other resources
 
-in api/setting.py, define 
-```
-AUTH_TYPE=INSTANCE_PRINCIPAL
-COMPARTMENT_ID = 'ocid1.compartment.oc1..asddasd'
-```
-    
-You can modify the `api/setting.py` file to custom config file location and DEFAULT_API_KEYS.
+in `config.py`, set `AUTH_TYPE=INSTANCE_PRINCIPAL`
 
-It's done. You can edit other settings if you want.
+## Other settings:
 
-
+You can modify the `config.py` file to change default settings.
+- `PORT`: service http port
+- `RELOAD`: if True, the web service will reload if any file change in the project
+- `DEBUG`: if True, more logs will displayed
+- `DEFAULT_API_KEYS`: Authorize token for the API, default is `ocigenerativeai`
+- `API_ROUTE_PREFIX`: API url PREDIX
+- `AUTH_TYPE`: `API_KEY` or `INSTANCE_PRINCIPAL`
+- `OCI_CONFIG_FILE`: OCI config file location, default is `~/.oci/config`
+- `OCI_CONFIG_FILE_KEY`: multiple configs can be added in one config file, so you can use key to determain use which one
+- `INFERENCE_ENDPOINT_TEMPLATE`: no need to modify, unless the OCI service changes
 
 
 # Models
-List of OCI Generative AI Service models currently supported:
 
-**Chat models**:
-- meta.llama-3-70b-instruct
-- cohere.command-r-plus
-- cohere.command-r-16k
-- Dedicated AI Cluster (use `Endpoint Id` as `model`)
+Generative AI is a rapidly evolving field, with new models being added and old models being retired, so we gave up hard-coding model information in the code and instead defined the model through `models.yaml`.
 
-**Embedding models**:
-- cohere.embed-english-v3.0
-- cohere.embed-multilingual-v3.0
-- cohere.embed-english-light-v3.0
-- cohere.embed-multilingual-light-v3.0
+Don't worry, most of the models have been written well in the file, you just need to use them.
 
-# Features under development
+You can define 4 types of models:
+- **ondemand**: pre-trained chat model provided by OCI generative AI service, accessed through a unified API.
+- **embedding**: pre-trained embedding model provided by OCI generative AI service, accessed through a unified API.
+- **dedicated**: OCI Generative AI service’s proprietary model, the model to be accessed is determined by specifying the endpoint
+- **datascience**: LLM service deployed through the [AI ​​Quick Action function of OCI Data Science](https://docs.oracle.com/en-us/iaas/data-science/using/ai-quick-actions.htm).
+AI Quick Actions makes it easy for you to browse foundation models, and deploy, fine-tune, and evaluate them inside Data Science notebooks.
+The model to be accessed is determined by specifying the endpoint, and endpoint should be end with `/predict`. 
+When create datascience deployment `Inference mode`should be `/v1/chat/completions`.`Inference container` should be `VLLM`.
 
-- Tool call
-- Docker deployment
+Model information parameters:
+- `region`: OCI services can be provided by multiple regions, so you can configure the region to be called
+- `compartment_id`: Required, this parameter determines the compartment where the service is initiated, which is basically related to cost and permission management;
+- `name`: is a custom name, a legal string is fine
+- `model_id`: is the [standard model ID](https://docs.oracle.com/en-us/iaas/Content/generative-ai/pretrained-models.htm)
+- `endpoint`: Call endpoint, which can be viewed through the OCI console
 
 
-# Change log
-- 20240815: Add Dedicated AI Cluster support;
-- 20240729: first commit;
+# Test the application
 
-# Feature test
+## Set base_url
 
-## Set endpoint
 ```python
 from openai import OpenAI
 
@@ -109,50 +121,76 @@ client = OpenAI(
     api_key = "ocigenerativeai",
     base_url = "http://xxx.xxx.xxx.xxx:8088/api/v1/",
     )
+models = client.models.list()
+for model in models:
+    print(model.id)
 ```
 
 ## Chat 
 ```python
-models = client.models.list()
+
+test_models = [
+    "cohere.command-r-plus",
+    "cohere.command-r-16k",
+    "meta.llama-3.1-70b-instruct",
+    "meta.llama-3.1-405b-instruct",
+    "ODSC-Mistral-7B-Instruct"]
+
 message = "Hello!"
 
 # Test chat completions
-for model in models:
-    print("model:", model.id)
+for model_name in test_models:
+    print("Model:",model_name,)
     print("User:", message)
     completion = client.chat.completions.create(
-        model=model.id,
-        messages=[{"role": "user", "content": message}],
+        model = model_name,
+        messages = [{"role": "user", "content": message}],
+        max_tokens=12,
         )
     print("Assistant:", completion.choices[0].message.content)
     print("*"*100)
 ```
 output:
 ```
-model: meta.llama-3-70b-instruct
+Model: cohere.command-r-plus
 User: Hello!
-Assistant: Hello! It's nice to meet you. Is there something I can help you with, or would you like to chat?
-****************************************************************************************************
-model: cohere.command-r-16k
+Assistant: Hello to you too
+**************************************************
+Model: cohere.command-r-16k
 User: Hello!
-Assistant: Hello, how are you? I'm doing well, thank you! It's lovely to greet you, and I hope you're having a splendid day so far!
-****************************************************************************************************
-model: cohere.command-r-plus
+Assistant: Hello there! How's it going? I'm an AI
+**************************************************
+Model: meta.llama-3.1-70b-instruct
 User: Hello!
-Assistant: Hello! How can I help you?
-****************************************************************************************************
+Assistant: Hello! How can I assist you today?
+**************************************************
+Model: meta.llama-3.1-405b-instruct
+User: Hello!
+Assistant: Hello! It's nice to meet you. Is there something
+**************************************************
+Model: ODSC-Mistral-7B-Instruct
+User: Hello!
+Assistant: Hi there! How can I help you today? If you
+**************************************************
 ```
 
 ## chat streaming
 ```python
+test_models = [
+    "cohere.command-r-plus",
+    "cohere.command-r-16k",
+    "meta.llama-3.1-70b-instruct",
+    "meta.llama-3.1-405b-instruct",
+    "ODSC-Mistral-7B-Instruct"]
 # Test chat completions with streaming response
-for model in models:
-    print("model:", model.id)
+for model in test_models:
+    print("Model:", model)
     print("User:", message)
     print("Assistant:", end='')
     response = client.chat.completions.create(
-        model=model.id,
+        model=model,
         messages=[{'role': 'user', 'content': message}],
+        max_tokens=12,
         stream=True  # this time, we set stream=True
     )
     for chunk in response:
@@ -163,18 +201,26 @@ for model in models:
 
 output:
 ```
-model: meta.llama-3-70b-instruct
+Model: cohere.command-r-plus
 User: Hello!
-Assistant:Hello! It's nice to meet you. Is there something I can help you with, or would you like to chat?
- ****************************************************************************************************
-model: cohere.command-r-16k
+Assistant:Hello! What can I do for you today?
+ **************************************************
+Model: cohere.command-r-16k
 User: Hello!
-Assistant:Hi there! I'm Coral, an AI-assistant chatbot trained to help human users by providing thorough responses, and I'm happy to assist you today! What do you need help with?
- ****************************************************************************************************
-model: cohere.command-r-plus
+Assistant:Hello! It's nice to receive a message from you.
+ **************************************************
+Model: meta.llama-3.1-70b-instruct
 User: Hello!
-Assistant:Hello, what can I help with?
- ****************************************************************************************************
+Assistant:Hello! It's nice to meet you. Is there
+ **************************************************
+Model: meta.llama-3.1-405b-instruct
+User: Hello!
+Assistant:Hello! How can I help you today?
+ **************************************************
+Model: ODSC-Mistral-7B-Instruct
+User: Hello!
+Assistant: Hello! How can I help you today? I'm
+ **************************************************
 ```
 
 ## embedding

@@ -7,10 +7,14 @@ from abc import ABC
 from typing import AsyncIterable, Iterable, Literal
 
 import oci
-from api.setting import OCI_CONFIG, COMPARTMENT_ID,client_kwargs,AUTH_TYPE
+from api.setting import DEBUG
+from api.setting import CLIENT_KWARGS, \
+    INFERENCE_ENDPOINT_TEMPLATE, \
+    SUPPORTED_OCIGENAI_EMBEDDING_MODELS, \
+    SUPPORTED_OCIGENAI_CHAT_MODELS
 
 import numpy as np
-# import requests
+import requests
 import tiktoken
 from fastapi import HTTPException
 
@@ -38,64 +42,33 @@ from api.schema import (
     EmbeddingsUsage,
     Embedding,
 )
-from api.setting import DEBUG
+
 
 logging.basicConfig(format='%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
     datefmt='%Y-%m-%d:%H:%M:%S',
     level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def init_oci_auth(auth_type):
-    finalConfig = {}
-    if auth_type == 'API_KEY':
-        ociconfig = OCI_CONFIG
-        client_kwargs.update({'config': ociconfig}) 
-
-    if auth_type == 'INSTANCE_PRINCIPAL':
-        signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
-        client_kwargs.update({'signer': signer}) 
-
-    return finalConfig
-
-init_oci_auth  (AUTH_TYPE)
 
 generative_ai_inference_client = oci.generative_ai_inference.GenerativeAiInferenceClient(
-                **client_kwargs
+                **CLIENT_KWARGS
             )
-
-
-SUPPORTED_OCIGENAI_EMBEDDING_MODELS = {
-    'cohere.embed-english-light-v3.0':'Cohere Embed English Light 3.0',
-    'cohere.embed-english-v3.0':'Cohere Embed English 3.0',
-    'cohere.embed-multilingual-light-v3.0':'Cohere Embed Multilingual Light 3.0',
-    'cohere.embed-multilingual-v3.0':'Cohere Embed Multilingual 3.0',
-}
 
 ENCODER = tiktoken.get_encoding("cl100k_base")
 
 
 class OCIGenAIModel(BaseChatModel):
     # https://docs.oracle.com/en-us/iaas/Content/generative-ai/pretrained-models.htm
-    _supported_models = {        
-        "meta.llama-3-70b-instruct": {
+    # https://docs.oracle.com/en-us/iaas/data-science/using/ai-quick-actions-model-deploy.htm
+    _supported_models = {}
+
+    for model in SUPPORTED_OCIGENAI_CHAT_MODELS:
+        _supported_models[model] = {
             "system": True,
             "multimodal": False,
             "tool_call": False,
             "stream_tool_call": False,
-        },       
-        "cohere.command-r-16k": {
-            "system": True,
-            "multimodal": False,
-            "tool_call": True,
-            "stream_tool_call": False,
-        },
-        "cohere.command-r-plus": {
-            "system": True,
-            "multimodal": False,
-            "tool_call": True,
-            "stream_tool_call": False,
-        },
-    }
+        }
 
     def list_models(self) -> list[str]:
         return list(self._supported_models.keys())
@@ -124,16 +97,19 @@ class OCIGenAIModel(BaseChatModel):
             logger.info("Raw request: " + chat_request.model_dump_json())
 
         # convert OpenAI chat request to OCI Generative AI SDK request
-        args = self._parse_request(chat_request)
+        args = self._parse_request(chat_request)        
         if DEBUG:
             logger.info("OCI Generative AI request: " + json.dumps(args))
-        try:
+        try:             
+            region = SUPPORTED_OCIGENAI_CHAT_MODELS[chat_request.model]["region"]
+            # generative_ai_inference_client.base_client.config["region"] = region
+            generative_ai_inference_client.base_client._endpoint = INFERENCE_ENDPOINT_TEMPLATE.replace("{region}", region)
             response = generative_ai_inference_client.chat(args)
         except Exception as e:
             logger.error(e)
             raise HTTPException(status_code=500, detail=str(e))
         return response
-
+    
     def chat(self, chat_request: ChatRequest) -> ChatResponse:
         """Default implementation for Chat API."""
 
@@ -302,9 +278,13 @@ class OCIGenAIModel(BaseChatModel):
             "temperature": chat_request.temperature,
             "topP": chat_request.top_p,
             # "topK": chat_request.top_k
-            }         
+            }    
 
-        if chat_request.model.startswith("cohere"):
+        model_name = chat_request.model        
+        provider = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]["provider"]
+        compartment_id = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]["compartment_id"]        
+
+        if provider == "cohere":
             chatHistory = []
             for message in messages[:-1]:
                 # print("="*22)
@@ -322,7 +302,7 @@ class OCIGenAIModel(BaseChatModel):
                             }
             chatRequest.update(inference_config)
 
-        elif chat_request.model.startswith("meta"):
+        elif provider == "meta":
             meta_messages = []
             for message in messages:                
                 text = message["content"][0]["text"]
@@ -338,13 +318,15 @@ class OCIGenAIModel(BaseChatModel):
             chatRequest.update(inference_config)        
         
 
-        if chat_request.model.startswith("ocid1.generativeaiendpoint"):
-            servingMode ={"endpointId": chat_request.model, "servingType": "DEDICATED"}
+        if provider == "dedicated":
+            endpoint = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]["endpoint"]
+            servingMode ={"endpointId": endpoint, "servingType": "DEDICATED"}
         else:
-            servingMode ={"modelId": chat_request.model, "servingType": "ON_DEMAND"}
+            model_id = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]["model_id"]
+            servingMode ={"modelId": model_id, "servingType": "ON_DEMAND"}
                       
         chat_detail = {
-            "compartmentId": COMPARTMENT_ID,
+            "compartmentId": compartment_id,
             "servingMode": servingMode,
             "chatRequest": chatRequest
             }
@@ -619,14 +601,16 @@ class OCIGenAIModel(BaseChatModel):
 class OCIGenAIEmbeddingsModel(BaseEmbeddingsModel, ABC):
     accept = "application/json"
     content_type = "application/json"
+    
 
     def _invoke_model(self, args: dict, model_id: str):
         # body = json.dumps(args)
+        compartment_id = SUPPORTED_OCIGENAI_EMBEDDING_MODELS[model_id]["compartment_id"]
         body = {
                 "inputs": args["texts"],
                 "servingMode": {"servingType": "ON_DEMAND","modelId": model_id},
                 "truncate": args["truncate"],
-                "compartmentId": COMPARTMENT_ID
+                "compartmentId": compartment_id
                 }
         if DEBUG:
             logger.info("Invoke OCI GenAI Model: " + model_id)
@@ -721,7 +705,7 @@ class CohereEmbeddingsModel(OCIGenAIEmbeddingsModel):
 def get_embeddings_model(model_id: str) -> OCIGenAIEmbeddingsModel:
     model_name = SUPPORTED_OCIGENAI_EMBEDDING_MODELS.get(model_id, "")
     if DEBUG:
-        logger.info("model name is " + model_name)
+        logger.info("model name is " + model_name.get("model_id", model_name))
     if model_name:
         return CohereEmbeddingsModel()
     else:
