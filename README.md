@@ -24,11 +24,6 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 - 20240815: Add Dedicated AI Cluster support;
 - 20240729: first commit;
 
-# Features under development
-- Tool call
-- Docker deployment
-- Multi-modal 
-
 # Quick Start
 
 1. Clone this repository and set prerequisites;
@@ -257,3 +252,9 @@ model: cohere.embed-multilingual-v3.0
 1 : [-0.00856781005859375, 0.04287719726 ...... 9579658508300781, -0.04571533203125]
 ****************************************************************************************************
 ```
+
+
+# Features under development
+- Tool call
+- Docker deployment
+- Multi-modal 
