@@ -5,3 +5,4 @@ tiktoken>=0.6.0
 requests>=2.32.3
 numpy>=1.26.4
 oci>=2.129.4
+pip install sseclient-py

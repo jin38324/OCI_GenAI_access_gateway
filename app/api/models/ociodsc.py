@@ -138,7 +138,8 @@ class OCIOdscModel(BaseChatModel):
                 message_id=chunk["id"], 
                 chunk=chunk
                 )
-            logger.info(stream_response)
+            if DEBUG:
+                logger.info(stream_response)
             if not stream_response:
                 continue
             if DEBUG:
@@ -338,8 +339,8 @@ class OCIOdscModel(BaseChatModel):
 
         Ref: https://docs.oracle.com/en-us/iaas/api/#/EN/generative-ai-inference/20231130/ChatResult/Chat
         """
-        if DEBUG:
-            logger.info("OCI GenAI response chunk: " + str(chunk))
+        #if DEBUG:
+        #    logger.info("OCI GenAI response chunk: " + str(chunk))
 
         finish_reason = None
         message = None
@@ -352,7 +353,7 @@ class OCIOdscModel(BaseChatModel):
                 content=text,
             )  
         
-        logger.info("消息："+str(message))        
+        # logger.info("消息："+str(message))        
         if "contentBlockStart" in chunk:
             # tool call start
             delta = chunk["contentBlockStart"]["start"]
