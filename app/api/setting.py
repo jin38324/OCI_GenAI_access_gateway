@@ -41,7 +41,7 @@ def parse_model_settings(yaml_file):
     return model_settings
 
 
-MODEL_SETTINGS = parse_model_settings('models.yaml')
+MODEL_SETTINGS = parse_model_settings(os.path.join(parent_dir, 'models.yaml'))
 
 
 SUPPORTED_OCIGENAI_EMBEDDING_MODELS = {}
