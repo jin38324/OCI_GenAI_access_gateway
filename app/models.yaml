@@ -1,5 +1,5 @@
 - region: us-chicago-1
-  compartment_id: ocid1.compartment.oc1..aaaaaaaau5q457a7teqkjce4oenoiz6bmc4g3s74a5543iqbm7xwplho44fq
+  compartment_id: ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   models:
     ondemand:
       - name: cohere.command-r-plus
@@ -46,11 +46,11 @@
         description: "my dedicated model description"
 
 - region: us-ashburn-1
-  compartment_id: ocid1.compartment.oc1..aaaaaaaau5q457a7teqkjce4oenoiz6bmc4g3s74a5543iqbm7xwplho44fq
+  compartment_id: ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   models:
     datascience:
       - name: ODSC-Mistral-7B-Instruct
-        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad.amaaaaaaak7gbriacudwcdxwstyqmp6iwt46ywq53jox4bvtbmrunnwzoqqa/predict
+        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/predict
         description: "Data science Model deployment for Mistral 7B Instruct model"
 
 # Modify this file to specify the call information of the model.
