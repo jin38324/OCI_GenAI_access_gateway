@@ -606,6 +606,8 @@ class OCIGenAIEmbeddingsModel(BaseEmbeddingsModel, ABC):
     def _invoke_model(self, args: dict, model_id: str):
         # body = json.dumps(args)
         compartment_id = SUPPORTED_OCIGENAI_EMBEDDING_MODELS[model_id]["compartment_id"]
+        region = SUPPORTED_OCIGENAI_EMBEDDING_MODELS[model_id]["region"]
+        generative_ai_inference_client.base_client._endpoint = INFERENCE_ENDPOINT_TEMPLATE.replace("{region}", region)
         body = {
                 "inputs": args["texts"],
                 "servingMode": {"servingType": "ON_DEMAND","modelId": model_id},
