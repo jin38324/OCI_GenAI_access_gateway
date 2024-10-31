@@ -19,6 +19,7 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 *This is a project inspired by [aws-samples/bedrock-access-gateway](https://github.com/aws-samples/bedrock-access-gateway/tree/main)*
 
 # Change log
+- 20241031: Add MIT license
 - 20241022: Support LLM service deployed through the AI ​​Quick Action of OCI Data Science; Optimize model configuration;
 - 20240905: Support Instance principals auth;
 - 20240815: Add Dedicated AI Cluster support;
@@ -26,12 +27,18 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 
 # Quick Start
 
-1. Clone this repository and set prerequisites;
+
+1. Clone this repository and [set prerequisites](#set-prerequisites);
 
 2. Run this app:
+    2.1 Launch on host
 
     ```bash
     python app.py
+    ```
+    2.1 Launch in docker
+    ```bash
+    docker build -t oci_genai_gateway .
     ```
 
 3. Config your application like this:
