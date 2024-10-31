@@ -37,8 +37,17 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
     python app.py
     ```
     2.1 Launch in docker
+
+    copy `.oci` directory to `/root`, and confirm the `key_file` parameter is set to `/root` directory.
     ```bash
     docker build -t oci_genai_gateway .
+
+    docker run -p 8088:8088 \
+            -v $(pwd)/app/config.py:/app/config.py \
+            -v $(pwd)/app/models.yaml:/app/models.yaml \
+            -v /root/.oci:/root/.oci \
+            -it oci_genai_gateway
+
     ```
 
 3. Config your application like this:
