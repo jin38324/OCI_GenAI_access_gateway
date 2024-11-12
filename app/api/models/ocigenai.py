@@ -295,10 +295,11 @@ class OCIGenAIModel(BaseChatModel):
                     chatHistory.append({"role": "USER", "message": text})
                 elif message["role"] == "assistant":
                     chatHistory.append({"role": "CHATBOT", "message": text})
-
+            text = messages[-1]["content"][0]["text"]
+            text = text.encode("unicode_escape").decode("utf-8")
             chatRequest =  {"apiFormat": "COHERE",
                             "preambleOverride":' '.join(system_prompts),
-                            "message": messages[-1]["content"][0]["text"],
+                            "message": text,
                             "chatHistory": chatHistory,
                             }
             chatRequest.update(inference_config)
