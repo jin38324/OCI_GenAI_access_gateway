@@ -290,13 +290,13 @@ class OCIGenAIModel(BaseChatModel):
                 # print("="*22)
                 # print(message)
                 text = message["content"][0]["text"]
-                text = text.encode("unicode_escape").decode("utf-8")
+                #text = text.encode("unicode_escape").decode("utf-8")
                 if message["role"] == "user":
                     chatHistory.append({"role": "USER", "message": text})
                 elif message["role"] == "assistant":
                     chatHistory.append({"role": "CHATBOT", "message": text})
             text = messages[-1]["content"][0]["text"]
-            text = text.encode("unicode_escape").decode("utf-8")
+            #text = text.encode("unicode_escape").decode("utf-8")
             chatRequest =  {"apiFormat": "COHERE",
                             "preambleOverride":' '.join(system_prompts),
                             "message": text,
@@ -308,7 +308,7 @@ class OCIGenAIModel(BaseChatModel):
             meta_messages = []
             for message in messages:                
                 text = message["content"][0]["text"]
-                text = text.encode("unicode_escape").decode("utf-8")                
+                #text = text.encode("unicode_escape").decode("utf-8")                
                 meta_messages.append({"role": message["role"].upper(), 
                                       "content": [{"type": "TEXT","text": text}]
                                      })
