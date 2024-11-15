@@ -99,7 +99,7 @@ class OCIGenAIModel(BaseChatModel):
         # convert OpenAI chat request to OCI Generative AI SDK request
         args = self._parse_request(chat_request)        
         if DEBUG:
-            logger.info("OCI Generative AI request: " + json.dumps(args))
+            logger.info("OCI Generative AI request: " + json.dumps(args,ensure_ascii=False))
         try:             
             region = SUPPORTED_OCIGENAI_CHAT_MODELS[chat_request.model]["region"]
             # generative_ai_inference_client.base_client.config["region"] = region
