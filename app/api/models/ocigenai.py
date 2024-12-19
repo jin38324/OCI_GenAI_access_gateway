@@ -711,7 +711,8 @@ class CohereEmbeddingsModel(OCIGenAIEmbeddingsModel):
 def get_embeddings_model(model_id: str) -> OCIGenAIEmbeddingsModel:
     model_name = SUPPORTED_OCIGENAI_EMBEDDING_MODELS.get(model_id, "")
     if DEBUG:
-        logger.info("model name is " + model_name.get(model_id, ""))
+        print(model_name)
+        logger.info("model name is " + model_name["name"])
     if model_name:
         return CohereEmbeddingsModel()
     else:
