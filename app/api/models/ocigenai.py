@@ -11,7 +11,8 @@ from api.setting import DEBUG
 from api.setting import CLIENT_KWARGS, \
     INFERENCE_ENDPOINT_TEMPLATE, \
     SUPPORTED_OCIGENAI_EMBEDDING_MODELS, \
-    SUPPORTED_OCIGENAI_CHAT_MODELS
+    SUPPORTED_OCIGENAI_CHAT_MODELS, \
+    EMBED_TRUNCATE
 
 import numpy as np
 import requests
@@ -657,7 +658,7 @@ class OCIGenAIEmbeddingsModel(BaseEmbeddingsModel, ABC):
             ),
         )
         if DEBUG:
-            logger.info("Proxy response :" + response.model_dump_json())
+            logger.info("Proxy response :" + response.model_dump_json()[:100])
         return response
 
 
@@ -688,7 +689,7 @@ class CohereEmbeddingsModel(OCIGenAIEmbeddingsModel):
         args = {
             "texts": texts,
             "input_type": "search_document",
-            "truncate": "NONE",  # "NONE|START|END"
+            "truncate": EMBED_TRUNCATE,  # "NONE|START|END"
         }
         return args
 
@@ -698,7 +699,7 @@ class CohereEmbeddingsModel(OCIGenAIEmbeddingsModel):
         )
         response_body = response.data
         if DEBUG:
-            logger.info("OCI GenAI response body: " + str(response_body))
+            logger.info("OCI GenAI response body: " + str(response_body)[:50])
 
         return self._create_response(
             embeddings=response_body.embeddings,

@@ -19,7 +19,8 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 *This is a project inspired by [aws-samples/bedrock-access-gateway](https://github.com/aws-samples/bedrock-access-gateway/tree/main)*
 
 # Change log
-- 20241031: Now you can run this app in docker
+- 20241219: Add a parameter `EMBED_TRUNCATE` in `config.py`. This is a parameter that OpenAI does not have. The default setting `END` will truncate input that exceeds the maximum token length and keep the beginning part.
+- 20241031: Now you can run this app in docker, simpler tahnks to @streamnsight
 - 20241031: Add MIT license
 - 20241022: Support LLM service deployed through the AI ​​Quick Action of OCI Data Science; Optimize model configuration;
 - 20240905: Support Instance principals auth;
@@ -41,15 +42,13 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 
     ## Option 2: Launch in docker
 
-    Copy `.oci` directory (where config and private key located) to `/root`, and confirm the `key_file` parameter is set to `/root` directory.
+    Make sure the `key_file` parameter in user's directory `~/.oci/config` is `~/.oci`, where config and private key located.
 
     ```bash
     docker build -t oci_genai_gateway .
 
     docker run -p 8088:8088 \
-            -v $(pwd)/app/config.py:/app/config.py \
-            -v $(pwd)/app/models.yaml:/app/models.yaml \
-            -v /root/.oci:/root/.oci \
+            -v ~/.oci:/root/.oci \
             -it oci_genai_gateway
     ```
 

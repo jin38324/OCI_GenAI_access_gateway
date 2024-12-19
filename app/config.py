@@ -4,6 +4,12 @@ DEBUG = True
 DEFAULT_API_KEYS = "ocigenerativeai"
 API_ROUTE_PREFIX = "/v1"
 
+EMBED_TRUNCATE = "END"
+# One of NONE|START|END to specify how the API will handle inputs longer than the maximum token length.
+# START: will discard the start of the input until the remaining input is exactly the maximum input token length for the model. 
+# END: will discard the end of the input until the remaining input is exactly the maximum input token length for the model.
+# NONE: when the input exceeds the maximum input token length an error will be returned
+
 
 
 # AUTH_TYPE can be "API_KEY" or "INSTANCE_PRINCIPAL"
