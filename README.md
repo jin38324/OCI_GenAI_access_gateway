@@ -20,7 +20,7 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 
 # Change log
 - 20241219: Add a parameter `EMBED_TRUNCATE` in `config.py`. This is a parameter that OpenAI does not have. The default setting `END` will truncate input that exceeds the maximum token length and keep the beginning part.
-- 20241031: Now you can run this app in docker, simpler tahnks to @streamnsight
+- 20241031: Now you can run this app in docker, simpler thanks to @streamnsight
 - 20241031: Add MIT license
 - 20241022: Support LLM service deployed through the AI ​​Quick Action of OCI Data Science; Optimize model configuration;
 - 20240905: Support Instance principals auth;
