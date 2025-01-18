@@ -7,4 +7,4 @@ numpy>=1.26.4
 oci>=2.129.4
 sseclient-py
 pyyaml
-gunicorn
+gunicorn==23.0.0
