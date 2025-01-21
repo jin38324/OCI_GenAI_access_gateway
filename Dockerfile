@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY ./app /app
 
-CMD ["python", "app.py"]
+ENTRYPOINT ["gunicorn", "app:app", "--workers", "16", "--worker-class", "uvicorn.workers.UvicornWorker", "--timeout", "600", "--bind", "0.0.0.0:8088"]
