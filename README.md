@@ -37,9 +37,16 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 
     ## Option 1: Launch on host
 
+   In directory `./app`: run
     ```bash
     python app.py
     ```
+    
+    or use `gunicorn` to enable `parallel threads` on linux:
+   
+   ```bash
+   gunicorn app:app --workers 16 --worker-class uvicorn.workers.UvicornWorker --timeout 600 --bind 0.0.0.0:8088
+   ```
 
     ## Option 2: Launch in docker
 
@@ -53,7 +60,7 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
             -it oci_genai_gateway
     ```
 
-3. Config your application like this:
+4. Config your application like this:
 ![alt text](image/setting.png)
 
 It's OK now!
