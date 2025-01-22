@@ -24,7 +24,7 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 - 20241031: Now you can run this app in docker, simpler thanks to @streamnsight
 - 20241031: Add MIT license
 - 20241022: Support LLM service deployed through the AI ​​Quick Action of OCI Data Science; Optimize model configuration;
-- 20240905: Support Instance principals auth;
+- 20240905: Support Instance principals auth. Thanks to [munger1985](https://github.com/jin38324/OCI_GenAI_access_gateway/pull/2);
 - 20240815: Add Dedicated AI Cluster support;
 - 20240729: first commit;
 
