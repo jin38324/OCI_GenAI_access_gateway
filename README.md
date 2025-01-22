@@ -284,5 +284,4 @@ model: cohere.embed-multilingual-v3.0
 
 # Features under development
 - Tool call
-- Docker deployment
 - Multi-modal 
