@@ -1,0 +1,66 @@
+- region: us-chicago-1
+  compartment_id: ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  models:
+    ondemand:
+      - name: cohere.command-r-plus
+        model_id: cohere.command-r-plus
+        description: "Chat models: Optimized for complex tasks, offers advanced language understanding, higher capacity, and more nuanced responses, and can maintain context from its long conversation history of 128,000 tokens. Also ideal for question-answering, sentiment analysis, and information retrieval."
+
+      - name: cohere.command-r-16k
+        model_id: cohere.command-r-16k
+        description: "Optimized for conversational interaction and long context tasks. Ideal for text generation, summarization, translation, or text-based classification."
+
+      - name: meta.llama-3.1-70b-instruct
+        model_id: meta.llama-3.1-70b-instruct
+        description: "This 70 billion-parameter generation model is perfect for content creation, conversational AI, and enterprise applications."
+
+      - name: meta.llama-3.1-405b-instruct
+        model_id: meta.llama-3.1-405b-instruct
+        description: "This 405 billion-parameter model is a high-performance option that offers speed and scalability."
+
+    embedding:
+      - name : cohere.embed-multilingual-v3.0
+        model_id : cohere.embed-multilingual-v3.0
+        description: "Provides multilingual classification and embedding support."
+
+      - name : cohere.embed-english-v3.0
+        model_id : cohere.embed-english-v3.0
+        description: "A model that allows for text to be classified or turned into embeddings. English only."
+
+      - name : cohere.embed-english-light-v3.0
+        model_id : cohere.embed-english-light-v3.0
+        description: "A smaller, faster version of embed-english-v3.0. Almost as capable, but a lot faster. English only."
+
+      - name : cohere.embed-multilingual-light-v3.0
+        model_id : cohere.embed-multilingual-light-v3.0
+        description: "A smaller, faster version of embed-multilingual-v3.0. Almost as capable, but a lot faster. Supports multiple languages."
+
+    dedicated:
+      - name: my-dedicated-model-name
+        endpoint: https://ocid1.generativeaiendpoint....  # endpoint url for dedicated model
+        description: "my dedicated model description"
+
+    datascience:
+      - name: my-datascience-model-name
+        endpoint: https://modeldeployment.xxxxxx/predict  # Model deployment endpoint url
+        description: "my dedicated model description"
+
+- region: us-ashburn-1
+  compartment_id: ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  models:
+    datascience:
+      - name: ODSC-Mistral-7B-Instruct
+        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/predict
+        description: "Data science Model deployment for Mistral 7B Instruct model"
+
+# Modify this file to specify the call information of the model.
+# You can define 3 types of models:
+# ondemand: pre-trained model on OCI generative AI
+# dedicated: dedicated model on OCI generative AI, including dedicated infrastructure, fine-tuned model, etc.
+# datascience: model deployed by OCI data science service
+
+# Where:
+# region: the region where the model is located
+# compartment_id: the compartment where the model is located
+# name: any specified model name, use this name to point to different models when calling
+# model_id: for ondemand, it is the model id, for dedicated and datascience, it is the call endpoint

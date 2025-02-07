@@ -4,8 +4,8 @@ WORKDIR /app
 
 COPY ./requirements.txt /app/requirements.txt
 
-RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-COPY ./api /app/api
+COPY ./app /app
 
-CMD ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "80"]
+ENTRYPOINT ["gunicorn", "app:app", "--workers", "16", "--worker-class", "uvicorn.workers.UvicornWorker", "--timeout", "600", "--bind", "0.0.0.0:8088"]
