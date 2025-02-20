@@ -33,10 +33,8 @@ async def chat_completions(
             ),
         ]
 ):
-    
-
     model_name = chat_request.model
-    
+
     if model_name is None:
         chat_request.model = DEFAULT_MODEL
     try:
@@ -44,16 +42,16 @@ async def chat_completions(
     except:
         model_type = SUPPORTED_OCIODSC_CHAT_MODELS[model_name]["type"]
     # Exception will be raised if model not supported.
-    
-    if model_type == "datascience":        
-        model = OCIOdscModel()    # Data Science models        
+
+    if model_type == "datascience":
+        model = OCIOdscModel()  # Data Science models
     elif model_type == "ondemand":
-        model = OCIGenAIModel()    # GenAI service ondemand models        
+        model = OCIGenAIModel()  # GenAI service ondemand models
     elif model_type == "dedicated":
-        model = OCIGenAIModel()    # GenAI service dedicated models
+        model = OCIGenAIModel()  # GenAI service dedicated models
 
     model.validate(chat_request)
-    
+
     if chat_request.stream:
         return StreamingResponse(
             content=model.chat_stream(chat_request), media_type="text/event-stream"
