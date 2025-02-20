@@ -11,9 +11,7 @@ from api.setting import DEBUG
 from api.setting import CLIENT_KWARGS, \
     INFERENCE_ENDPOINT_TEMPLATE, \
     SUPPORTED_OCIGENAI_EMBEDDING_MODELS, \
-    SUPPORTED_OCIGENAI_CHAT_MODELS, \
-    EMBED_TRUNCATE, \
-    MODEL_SETTINGS
+    SUPPORTED_OCIGENAI_CHAT_MODELS
 
 import numpy as np
 import requests
@@ -44,6 +42,7 @@ from api.schema import (
     EmbeddingsUsage,
     Embedding,
 )
+from config import EMBED_TRUNCATE
 
 logging.basicConfig(format='%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                     datefmt='%Y-%m-%d:%H:%M:%S',
