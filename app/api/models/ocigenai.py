@@ -310,9 +310,15 @@ class OCIGenAIModel(BaseChatModel):
             for message in messages:
                 # text = message["content"][0]["text"]
                 # text = text.encode("unicode_escape").decode("utf-8")
+                updated_content = []
+                for content_item in message["content"]:
+                    updated_item = {k: (v.upper() if k == "type" else v) for k, v in content_item.items()}
+                    if "type" not in content_item:
+                        updated_item["type"] = "TEXT"
+                    updated_content.append(updated_item)
                 meta_messages.append({"role": message["role"].upper(),
                                       # "content": [{"type": "TEXT","text": text}]
-                                      "content": message["content"]
+                                      "content": updated_content
                                       })
             chatRequest = {
                 "apiFormat": "GENERIC",
