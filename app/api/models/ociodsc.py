@@ -42,9 +42,9 @@ logging.basicConfig(format='%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)
                     level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-odsc_client = odsc_inference_client = DataScienceAiInferenceClient(
-    **CLIENT_KWARGS
-)
+odsc_client = DataScienceAiInferenceClient(
+                **CLIENT_KWARGS
+            )
 
 
 class OCIOdscModel(BaseChatModel):

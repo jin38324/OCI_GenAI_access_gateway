@@ -2,7 +2,7 @@ PORT = 8088
 RELOAD = True
 DEBUG = True
 DEFAULT_API_KEYS = "ocigenerativeai"
-API_ROUTE_PREFIX = "/v1"
+API_ROUTE_PREFIX = "/api/v1"
 
 EMBED_TRUNCATE = "END"
 # One of NONE|START|END to specify how the API will handle inputs longer than the maximum token length.

@@ -60,6 +60,7 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
     docker run -p 8088:8088 \
             -v ~/.oci:/root/.oci \
             -it oci_genai_gateway
+			-n oci_genai_gateway
     ```
 
 4. Config your application like this:
