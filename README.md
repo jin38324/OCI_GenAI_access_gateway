@@ -19,6 +19,7 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 *This is a project inspired by [aws-samples/bedrock-access-gateway](https://github.com/aws-samples/bedrock-access-gateway/tree/main)*
 
 # Change log
+- 20250221: Now support image input for multimodal model like `meta.llama-3.2-90b-vision-instruct`
 - 20250121: Add `gunicorn` to support parallel threads, get a 9x speed up. Thanks to [@streamnsight](https://github.com/jin38324/OCI_GenAI_access_gateway/pull/4)
 - 20241219: Add a parameter `EMBED_TRUNCATE` in `config.py`. This is a parameter that OpenAI does not have. The default setting `END` will truncate input that exceeds the maximum token length and keep the beginning part.
 - 20241031: Now you can run this app in docker, simpler thanks to @streamnsight
@@ -113,9 +114,12 @@ You can modify the `config.py` file to change default settings.
 
 # Models
 
-Generative AI is a rapidly evolving field, with new models being added and old models being retired, so we gave up hard-coding model information in the code and instead defined the model through `models.yaml`.
+Generative AI is a rapidly evolving field, with new models being added and old models being retired.
+So I abandoned hard-coding model information in the code and instead defined the model through `models.yaml`.
 
 Don't worry, most of the models have been written well in the file, you just need to use them.
+
+== You can change your `models.yaml` in your runtime if new models are avaliable. ==
 
 You can define 4 types of models:
 - **ondemand**: pre-trained chat model provided by OCI generative AI service, accessed through a unified API.
@@ -143,73 +147,72 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key = "ocigenerativeai",
-    base_url = "http://xxx.xxx.xxx.xxx:8088/api/v1/",
+    base_url = "http://xxx.xxx.xxx.xxx:8088/v1/",
     )
 models = client.models.list()
 for model in models:
     print(model.id)
 ```
 
-## Chat 
+## Test chat completions with non-streaming response
 ```python
 
 test_models = [
-    "cohere.command-r-plus",
-    "cohere.command-r-16k",
+    "cohere.command-r-plus-08-2024",
+    "cohere.command-r-08-2024",
+    "meta.llama-3.3-70b-instruct",
+    "meta.llama-3.2-90b-vision-instruct",
     "meta.llama-3.1-70b-instruct",
-    "meta.llama-3.1-405b-instruct",
-    "ODSC-Mistral-7B-Instruct"]
-
-message = "Hello!"
+    "meta.llama-3.1-405b-instruct"
+    ]
 
 # Test chat completions
+message = "Hello!"
+print("User:", message)
+
 for model_name in test_models:
+    print("*"*50)
     print("Model:",model_name,)
-    print("User:", message)
     completion = client.chat.completions.create(
         model = model_name,
         messages = [{"role": "user", "content": message}],
         max_tokens=12,
         )
     print("Assistant:", completion.choices[0].message.content)
-    print("*"*100)
 ```
 output:
 ```
-Model: cohere.command-r-plus
 User: Hello!
-Assistant: Hello to you too
 **************************************************
-Model: cohere.command-r-16k
-User: Hello!
-Assistant: Hello there! How's it going? I'm an AI
-**************************************************
-Model: meta.llama-3.1-70b-instruct
-User: Hello!
+Model: cohere.command-r-plus-08-2024
 Assistant: Hello! How can I assist you today?
 **************************************************
-Model: meta.llama-3.1-405b-instruct
-User: Hello!
+Model: cohere.command-r-08-2024
+Assistant: Hello there! How can I assist you today?
+**************************************************
+Model: meta.llama-3.3-70b-instruct
+Assistant: Hello! How can I assist you today?
+**************************************************
+Model: meta.llama-3.2-90b-vision-instruct
+Assistant: Hello. It's nice to meet you. Is there something
+**************************************************
+Model: meta.llama-3.1-70b-instruct
 Assistant: Hello! It's nice to meet you. Is there something
 **************************************************
-Model: ODSC-Mistral-7B-Instruct
-User: Hello!
-Assistant: Hi there! How can I help you today? If you
-**************************************************
+Model: meta.llama-3.1-405b-instruct
+Assistant: Hello! It's nice to meet you. Is there something
 ```
 
-## chat streaming
+## Test chat completions with streaming response
 ```python
-test_models = [
-    "cohere.command-r-plus",
-    "cohere.command-r-16k",
-    "meta.llama-3.1-70b-instruct",
-    "meta.llama-3.1-405b-instruct",
-    "ODSC-Mistral-7B-Instruct"]
+
 # Test chat completions with streaming response
-for model in test_models:
+message = "Hello!"
+print("User:", message)
+
+for model in test_models:    
+    print('\n',"*"*50)
     print("Model:", model)
-    print("User:", message)
     print("Assistant:", end='')
     response = client.chat.completions.create(
         model=model,
@@ -220,34 +223,76 @@ for model in test_models:
     for chunk in response:
         if chunk.choices[0].delta.content:
             print(chunk.choices[0].delta.content,end='')
-    print('\n',"*"*100)
 ```
 
 output:
 ```
-Model: cohere.command-r-plus
 User: Hello!
-Assistant:Hello! What can I do for you today?
+
  **************************************************
-Model: cohere.command-r-16k
-User: Hello!
-Assistant:Hello! It's nice to receive a message from you.
+Model: cohere.command-r-plus-08-2024
+Assistant:Hi there! How can I assist you today? Feel free
  **************************************************
-Model: meta.llama-3.1-70b-instruct
-User: Hello!
+Model: cohere.command-r-08-2024
+Assistant:Hello! How can I assist you today?
+ **************************************************
+Model: meta.llama-3.3-70b-instruct
 Assistant:Hello! It's nice to meet you. Is there
  **************************************************
+Model: meta.llama-3.2-90b-vision-instruct
+Assistant:Hello! It's nice to meet you. Is there
+ **************************************************
+Model: meta.llama-3.1-70b-instruct
+Assistant:It's nice to meet you. Is there something I
+ **************************************************
 Model: meta.llama-3.1-405b-instruct
-User: Hello!
-Assistant:Hello! How can I help you today?
+Assistant:It's nice to meet you. Is there something I
+```
+### Test multi-modal with image input response
+
+```python
+
+test_models = ["meta.llama-3.2-90b-vision-instruct"]
+
+import base64
+import mimetypes
+
+image_path = "image.jpg"
+mime_type, _ = mimetypes.guess_type(image_path)
+with open(image_path, "rb") as image_file:
+    base64_str = base64.b64encode(image_file.read()).decode('utf-8')
+url = f"data:{mime_type};base64,{base64_str}"
+print(url[:128])
+
+content = [{"type": "text","text": "describe this image?"},
+	{"type": "image_url","image_url": {"url": url}}]
+
+for model in test_models:
+    print('\n',"*"*50)
+    print("Model:", model)
+    completion = client.chat.completions.create(
+        model = model,
+        messages = [{"role": "user", "content": content}],
+        max_tokens=120,
+        )
+    print("Assistant:\n", completion.choices[0].message.content)
+```
+output:
+```
+data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAeAB4AAD/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAEAAAAAAAD/2wBDAAIBAQIBAQICAgICAgICAwUDA
+
  **************************************************
-Model: ODSC-Mistral-7B-Instruct
-User: Hello!
-Assistant: Hello! How can I help you today? I'm
- **************************************************
+Model: meta.llama-3.2-90b-vision-instruct
+Assistant:
+ The image showcases the iconic red and yellow logo of Superman, a renowned superhero from DC Comics. The logo is prominently displayed against a dark blue background.
+
+**Key Features:**
+
+* **Logo Design:** The logo features a stylized "S" with curved lines and pointed ends, enclosed within a red shield shape. The shield has sharp points at the top and bottom, with flat sides and a black outline.
+* **Color Scheme:** The logo's central design element is the yellow "S" shape, which stands out against the red shield. The entire logo is set against a dark blue background.
 ```
 
-## embedding
+## Test embedding
 ```python
 embd_model=[ 'cohere.embed-english-light-v3.0',
             'cohere.embed-english-v3.0',

@@ -308,18 +308,8 @@ class OCIGenAIModel(BaseChatModel):
         elif provider == "meta":
             meta_messages = []
             for message in messages:
-                # text = message["content"][0]["text"]
-                # text = text.encode("unicode_escape").decode("utf-8")
-                updated_content = []
-                for content_item in message["content"]:
-                    updated_item = {k: (v.upper() if k == "type" else v) for k, v in content_item.items()}
-                    if "type" not in content_item:
-                        updated_item["type"] = "TEXT"
-                    updated_content.append(updated_item)
-                meta_messages.append({"role": message["role"].upper(),
-                                      # "content": [{"type": "TEXT","text": text}]
-                                      "content": updated_content
-                                      })
+                message["role"] = message["role"].upper()
+                meta_messages.append(message)
             chatRequest = {
                 "apiFormat": "GENERIC",
                 "messages": meta_messages,
@@ -438,7 +428,8 @@ class OCIGenAIModel(BaseChatModel):
         Ref: https://docs.oracle.com/en-us/iaas/api/#/EN/generative-ai-inference/20231130/ChatResult/Chat
         """
         if DEBUG:
-            logger.info("OCI GenAI response chunk: " + str(chunk))
+            # logger.info("OCI GenAI response chunk: " + str(chunk))
+            pass
 
         finish_reason = None
         message = None
@@ -517,6 +508,7 @@ class OCIGenAIModel(BaseChatModel):
         if isinstance(message.content, str):
             return [
                 {
+                    "type": "TEXT",
                     "text": message.content,
                 }
             ]
@@ -536,13 +528,7 @@ class OCIGenAIModel(BaseChatModel):
                         detail=f"Multimodal message is currently not supported by {model_id}",
                     )
                 # image_data, content_type = self._parse_image(part.image_url.url)
-                content_parts.append(
-                    # {
-                    #     "image": {
-                    #         "format": content_type[6:],  # image/
-                    #         "source": {"bytes": image_data},
-                    #     },
-                    # }
+                content_parts.append(                    
                     {
                         "type": "IMAGE",
                         "imageUrl": {"url": f"{part.image_url.url}"},
