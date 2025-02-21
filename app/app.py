@@ -8,7 +8,7 @@ from fastapi.responses import PlainTextResponse
 # from mangum import Mangum
 
 from api.routers import model, chat, embeddings
-from api.setting import API_ROUTE_PREFIX, TITLE, DESCRIPTION, SUMMARY, VERSION,PORT,RELOAD
+from api.setting import API_ROUTE_PREFIX, TITLE, DESCRIPTION, SUMMARY, VERSION, PORT, RELOAD
 
 config = {
     "title": TITLE,

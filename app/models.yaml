@@ -6,8 +6,16 @@
         model_id: cohere.command-r-plus
         description: "Chat models: Optimized for complex tasks, offers advanced language understanding, higher capacity, and more nuanced responses, and can maintain context from its long conversation history of 128,000 tokens. Also ideal for question-answering, sentiment analysis, and information retrieval."
 
+      - name: cohere.command-r-plus-08-2024
+        model_id: cohere.command-r-plus-08-2024
+        description: "Chat models: Optimized for complex tasks, offers advanced language understanding, higher capacity, and more nuanced responses, and can maintain context from its long conversation history of 128,000 tokens. Also ideal for question-answering, sentiment analysis, and information retrieval."
+
       - name: cohere.command-r-16k
         model_id: cohere.command-r-16k
+        description: "Optimized for conversational interaction and long context tasks. Ideal for text generation, summarization, translation, or text-based classification."
+
+      - name: cohere.command-r-08-2024
+        model_id: cohere.command-r-08-2024
         description: "Optimized for conversational interaction and long context tasks. Ideal for text generation, summarization, translation, or text-based classification."
 
       - name: meta.llama-3.1-70b-instruct
@@ -18,21 +26,38 @@
         model_id: meta.llama-3.1-405b-instruct
         description: "This 405 billion-parameter model is a high-performance option that offers speed and scalability."
 
+      - name: meta.llama-3.2-90b-vision-instruct
+        model_id: meta.llama-3.2-90b-vision-instruct
+        multimodal: True
+        description: "This 90 billion-parameter generation model is perfect for content creation, conversational AI, image recognition and enterprise applications."
+
+      - name: meta.llama-3.3-70b-instruct
+        model_id: meta.llama-3.3-70b-instruct
+        description: "This 70 billion-parameter generation model is perfect for content creation, conversational AI, and enterprise applications."
+
     embedding:
-      - name : cohere.embed-multilingual-v3.0
-        model_id : cohere.embed-multilingual-v3.0
+      - name: cohere.embed-multilingual-v3.0
+        model_id: cohere.embed-multilingual-v3.0
         description: "Provides multilingual classification and embedding support."
 
-      - name : cohere.embed-english-v3.0
-        model_id : cohere.embed-english-v3.0
+      - name: cohere.embed-multilingual-v3.1
+        model_id: cohere.embed-multilingual-v3.1
+        description: "Provides multilingual classification and embedding support."
+
+      - name: cohere.embed-english-v3.0
+        model_id: cohere.embed-english-v3.0
         description: "A model that allows for text to be classified or turned into embeddings. English only."
 
-      - name : cohere.embed-english-light-v3.0
-        model_id : cohere.embed-english-light-v3.0
+      - name: cohere.embed-english-v3.1
+        model_id: cohere.embed-english-v3.1
+        description: "A model that allows for text to be classified or turned into embeddings. English only."
+
+      - name: cohere.embed-english-light-v3.0
+        model_id: cohere.embed-english-light-v3.0
         description: "A smaller, faster version of embed-english-v3.0. Almost as capable, but a lot faster. English only."
 
-      - name : cohere.embed-multilingual-light-v3.0
-        model_id : cohere.embed-multilingual-light-v3.0
+      - name: cohere.embed-multilingual-light-v3.0
+        model_id: cohere.embed-multilingual-light-v3.0
         description: "A smaller, faster version of embed-multilingual-v3.0. Almost as capable, but a lot faster. Supports multiple languages."
 
     dedicated:

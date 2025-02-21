@@ -15,9 +15,10 @@ router = APIRouter(
 
 chat_model = OCIGenAIModel()
 odsc_model = OCIOdscModel()
-all_models = chat_model.list_models() +odsc_model.list_models()
+all_models = chat_model.list_models() + odsc_model.list_models()
 
-async def validate_model_id(model_id: str):    
+
+async def validate_model_id(model_id: str):
     if model_id not in all_models:
         raise HTTPException(status_code=500, detail="Unsupported Model Id")
 
@@ -30,9 +31,9 @@ async def list_models():
     return Models(data=model_list)
 
 
-@router.get("/{model_id}",response_model=Model,)
+@router.get("/{model_id}", response_model=Model, )
 async def get_model(
-        model_id: Annotated[str,Path(description="Model ID", example="cohere.command-r-plus"),]
-    ):
+        model_id: Annotated[str, Path(description="Model ID", example="cohere.command-r-plus"),]
+):
     await validate_model_id(model_id)
     return Model(id=model_id)
