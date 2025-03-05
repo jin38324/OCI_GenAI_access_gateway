@@ -23,7 +23,9 @@ if AUTH_TYPE == "API_KEY":
     CLIENT_KWARGS.update({'config': OCI_CONFIG})
     CLIENT_KWARGS.update({'signer': signer})
 elif AUTH_TYPE == 'INSTANCE_PRINCIPAL':
+    OCI_CONFIG = {}
     signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
+    CLIENT_KWARGS.update({'config': OCI_CONFIG})
     CLIENT_KWARGS.update({'signer': signer})
 
 
