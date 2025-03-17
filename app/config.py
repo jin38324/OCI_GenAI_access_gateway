@@ -2,7 +2,7 @@ PORT = 8088
 RELOAD = True
 DEBUG = True
 DEFAULT_API_KEYS = "ocigenerativeai"
-API_ROUTE_PREFIX = "/v1"
+API_ROUTE_PREFIX = "/api/v1"
 
 EMBED_TRUNCATE = "END"
 # One of NONE|START|END to specify how the API will handle inputs longer than the maximum token length.
@@ -11,13 +11,11 @@ EMBED_TRUNCATE = "END"
 # NONE: when the input exceeds the maximum input token length an error will be returned
 
 
-
 # AUTH_TYPE can be "API_KEY" or "INSTANCE_PRINCIPAL"
-AUTH_TYPE="API_KEY"
+AUTH_TYPE = "API_KEY"
 OCI_CONFIG_FILE = "~/.oci/config"
 OCI_CONFIG_FILE_KEY = "DEFAULT"
 INFERENCE_ENDPOINT_TEMPLATE = "https://inference.generativeai.{region}.oci.oraclecloud.com/20231130"
-
 
 TITLE = "OCI Generative AI Proxy APIs"
 SUMMARY = "OpenAI-Compatible RESTful APIs for OCI Generative AI Service"

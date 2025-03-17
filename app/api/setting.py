@@ -7,9 +7,9 @@ sys.path.append(parent_dir)
 from config import *
 
 CLIENT_KWARGS = {
-                "retry_strategy": oci.retry.DEFAULT_RETRY_STRATEGY,
-                "timeout": (10, 240),  # default timeout config for OCI Gen AI service
-            }
+    "retry_strategy": oci.retry.DEFAULT_RETRY_STRATEGY,
+    "timeout": (10, 240),  # default timeout config for OCI Gen AI service
+}
 
 if AUTH_TYPE == "API_KEY":
     OCI_CONFIG = oci.config.from_file(OCI_CONFIG_FILE, OCI_CONFIG_FILE_KEY)
@@ -19,11 +19,13 @@ if AUTH_TYPE == "API_KEY":
         fingerprint=OCI_CONFIG['fingerprint'],
         private_key_file_location=OCI_CONFIG['key_file'],
         pass_phrase=OCI_CONFIG['pass_phrase']
-        )
+    )
     CLIENT_KWARGS.update({'config': OCI_CONFIG})
     CLIENT_KWARGS.update({'signer': signer})
 elif AUTH_TYPE == 'INSTANCE_PRINCIPAL':
+    OCI_CONFIG = {}
     signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
+    CLIENT_KWARGS.update({'config': OCI_CONFIG})
     CLIENT_KWARGS.update({'signer': signer})
 
 
@@ -32,7 +34,7 @@ def parse_model_settings(yaml_file):
         models = yaml.safe_load(stream)
     model_settings = []
     for i in models:
-        for k,v in i['models'].items():
+        for k, v in i['models'].items():
             for m in v:
                 m["region"] = i['region']
                 m["compartment_id"] = i['compartment_id']
@@ -42,7 +44,6 @@ def parse_model_settings(yaml_file):
 
 
 MODEL_SETTINGS = parse_model_settings(os.path.join(parent_dir, 'models.yaml'))
-
 
 SUPPORTED_OCIGENAI_EMBEDDING_MODELS = {}
 SUPPORTED_OCIGENAI_CHAT_MODELS = {}
@@ -61,7 +62,7 @@ for m in MODEL_SETTINGS:
             m["provider"] = "cohere"
         elif m["model_id"].startswith("meta"):
             m["provider"] = "meta"
-        SUPPORTED_OCIGENAI_CHAT_MODELS[m['name']] = m
+        SUPPORTED_OCIGENAI_CHAT_MODELS[m['name']] = m        
     elif m['type'] == "dedicated":
         m["provider"] = "dedicated"
         SUPPORTED_OCIGENAI_CHAT_MODELS[m['name']] = m
