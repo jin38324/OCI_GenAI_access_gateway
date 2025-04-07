@@ -155,4 +155,4 @@ for model in models:
     print(model.id)
 ```
 
-More example please check the notebook [Endpoint test.ipynb]("Endpoint test.ipynb")
+More example please check the notebook [Endpoint test.ipynb](https://github.com/jin38324/OCI_GenAI_access_gateway/blob/main/endpoint_test.ipynb)
