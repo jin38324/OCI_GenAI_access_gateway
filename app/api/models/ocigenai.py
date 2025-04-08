@@ -150,8 +150,8 @@ class OCIGenAIModel(BaseChatModel):
             )
             if not stream_response:
                 continue
-            if DEBUG:
-                logger.info("Proxy response :" + stream_response.model_dump_json())
+            #if DEBUG:
+                #logger.info("Proxy response :" + stream_response.model_dump_json())
             if stream_response.choices:
                 yield self.stream_response_to_bytes(stream_response)
             elif (
@@ -294,7 +294,7 @@ class OCIGenAIModel(BaseChatModel):
             
             # process last message
             last_message = messages[-1]
-            if last_message["role"] == "user":
+            if last_message["role"] in ("user","assistant"):
                 cohere_chatRequest.message = last_message["content"][0]["text"]
                 # text = text.encode("unicode_escape").decode("utf-8")
             # input tool result
@@ -322,17 +322,23 @@ class OCIGenAIModel(BaseChatModel):
                             message = text
                             )             
                     elif message["role"] == "assistant":
-                        if not message["tool_calls"]:
-                            message_line = oci_models.CohereChatBotMessage(
-                                role = "CHATBOT",
-                                message = text
-                                )
+                        if "tool_calls" in message:
+                            if not message["tool_calls"]:
+                                message_line = oci_models.CohereChatBotMessage(
+                                    role = "CHATBOT",
+                                    message = text
+                                    )
+                            else:
+                                message_line = oci_models.CohereChatBotMessage(
+                                    role = "CHATBOT",
+                                    message = text,
+                                    tool_calls = Convertor.convert_tool_calls_openai_to_cohere(message["tool_calls"])
+                                    ) 
                         else:
                             message_line = oci_models.CohereChatBotMessage(
-                                role = "CHATBOT",
-                                message = text,
-                                tool_calls = Convertor.convert_tool_calls_openai_to_cohere(message["tool_calls"])
-                                )                    
+                                    role = "CHATBOT",
+                                    message = text
+                                    )                 
 
                     elif message["role"] == "tool":
                         cohere_tool_results = []

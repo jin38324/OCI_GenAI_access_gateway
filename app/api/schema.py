@@ -203,7 +203,7 @@ class Convertor:
         for tool in openai_tools:
             # if tool.get("type") == "function":
             func = tool.function
-            name = func.name
+            name = func.name.replace("-","_")
             description = func.description
             parameters_schema = func.parameters     
                 
