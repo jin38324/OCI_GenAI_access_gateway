@@ -52,7 +52,7 @@ class ImageContent(BaseModel):
 class SystemMessage(BaseModel):
     name: str | None = None
     role: Literal["system"] = "system"
-    content: str
+    content: str | None = None
 
 
 class UserMessage(BaseModel):
@@ -64,7 +64,7 @@ class UserMessage(BaseModel):
 class AssistantMessage(BaseModel):
     name: str | None = None
     role: Literal["assistant"] = "assistant"
-    content: str | None
+    content: str | None = None
     tool_calls: list[ToolCall] | None = None
 
 
@@ -258,8 +258,8 @@ class Convertor:
         openai_tool_calls = []
         for call in cohere_tool_calls:
             function = ResponseFunction(
-                    name = call.name,
-                    arguments = json.dumps(call.parameters)
+                    name = call["name"].replace("_","-"),
+                    arguments = json.dumps(call["parameters"])
                     )            
             # Generate a unique id for the OpenAI tool call
             tool_id = base64.b64encode(json.dumps(function.model_dump()).encode())

@@ -134,7 +134,7 @@ class OCIGenAIModel(BaseChatModel):
 
     def chat_stream(self, chat_request: ChatRequest) -> AsyncIterable[bytes]:
         """Default implementation for Chat Stream API"""
-        print("="*20,str(chat_request))
+        # print("="*20,str(chat_request))
         response = self._invoke_genai(chat_request)
         if not response.data:
             raise HTTPException(status_code=500, detail="OCI AI API returned empty response")
@@ -150,8 +150,8 @@ class OCIGenAIModel(BaseChatModel):
             )
             if not stream_response:
                 continue
-            #if DEBUG:
-                #logger.info("Proxy response :" + stream_response.model_dump_json())
+            if DEBUG:
+                logger.info("Proxy response :" + stream_response.model_dump_json())
             if stream_response.choices:
                 yield self.stream_response_to_bytes(stream_response)
             elif (
@@ -290,26 +290,12 @@ class OCIGenAIModel(BaseChatModel):
             # add tools
             if chat_request.tools:
                 cohere_tools = Convertor.convert_tools_openai_to_cohere(chat_request.tools)
-                cohere_chatRequest.tools = cohere_tools
+                cohere_chatRequest.tools = cohere_tools  
             
-            # process last message
-            last_message = messages[-1]
-            if last_message["role"] in ("user","assistant"):
-                cohere_chatRequest.message = last_message["content"][0]["text"]
-                # text = text.encode("unicode_escape").decode("utf-8")
-            # input tool result
-            elif last_message["role"] == "tool":
-                cohere_chatRequest.message = ""
-                cohere_tool_results = []
-                cohere_tool_result = Convertor.convert_tool_result_openai_to_cohere(last_message)
-                cohere_tool_results.append(cohere_tool_result)
-                cohere_chatRequest.tool_results = cohere_tool_results
-
-            # create chat history
-            if len(messages)>1:
-                history_messages= messages[:-1]
-                chatHistory = []
-                for message in history_messages:
+            chatHistory = []
+            for i,message in enumerate(messages):
+                # process chat history
+                if i < len(messages)-1:                
                     # print("="*22,'\n',message)
                     # text = text.encode("unicode_escape").decode("utf-8")
                     try:
@@ -350,7 +336,20 @@ class OCIGenAIModel(BaseChatModel):
                             )
                         
                     chatHistory.append(message_line)
-                cohere_chatRequest.chat_history = chatHistory            
+                # process the last message    
+                elif i == len(messages)-1:
+                    if message["role"] in ("user","assistant","system"):
+                        cohere_chatRequest.message = message["content"][0]["text"]
+                        # text = text.encode("unicode_escape").decode("utf-8")
+                    # input tool result
+                    elif message["role"] == "tool":
+                        cohere_chatRequest.message = ""
+                        cohere_tool_results = []
+                        cohere_tool_result = Convertor.convert_tool_result_openai_to_cohere(message)
+                        cohere_tool_results.append(cohere_tool_result)
+                        cohere_chatRequest.tool_results = cohere_tool_results
+
+                cohere_chatRequest.chat_history = chatHistory
             chat_detail.chat_request = cohere_chatRequest
 
         elif provider == "meta":
@@ -439,45 +438,61 @@ class OCIGenAIModel(BaseChatModel):
         Ref: https://docs.oracle.com/en-us/iaas/api/#/EN/generative-ai-inference/20231130/ChatResult/Chat
         """
         if DEBUG:
-            # logger.info("OCI GenAI response chunk: " + str(chunk))
-            pass
-
+            logger.info("OCI GenAI response chunk: " + str(chunk))
         finish_reason = None
         message = None
         usage = None
+        text = None
+        openai_tool_calls = None
         if "finishReason" not in chunk:
             if model_id.startswith("cohere"):
-                text = chunk["text"]
+                if "tooCalls" not in chunk:
+                    text = chunk["text"]
+                    message = ChatResponseMessage(
+                        role="assistant",
+                        content=text,
+                        tool_calls=openai_tool_calls
+                        )
+                elif "toolCalls" in chunk:
+                    pass
+                    # openai_tool_calls = Convertor.convert_tool_calls_cohere_to_openai(chunk["toolCalls"])
+                    # message = ChatResponseMessage(
+                    #         tool_calls=openai_tool_calls
+                    #         )
             elif model_id.startswith("meta"):
                 text = chunk["message"]["content"][0]["text"]
-            message = ChatResponseMessage(
-                role="assistant",
-                content=text,
-            )
-
-        if "contentBlockStart" in chunk:
-            # tool call start
-            delta = chunk["contentBlockStart"]["start"]
-            if "toolUse" in delta:
-                # first index is content
-                index = chunk["contentBlockStart"]["contentBlockIndex"] - 1
                 message = ChatResponseMessage(
-                    tool_calls=[
-                        ToolCall(
-                            index=index,
-                            type="function",
-                            id=delta["toolUse"]["toolUseId"],
-                            function=ResponseFunction(
-                                name=delta["toolUse"]["name"],
-                                arguments="",
-                            ),
-                        )
-                    ]
-                )
-
-        if "finishReason" in chunk:
-            message = ChatResponseMessage()
+                    role="assistant",
+                    content=text,
+                    tool_calls=openai_tool_calls
+                    )
+        elif "finishReason" in chunk:
+            message = ChatResponseMessage(role="assistant")
             finish_reason = chunk["finishReason"]
+            if "toolCalls" in chunk:
+                openai_tool_calls = Convertor.convert_tool_calls_cohere_to_openai(chunk["toolCalls"])
+                message.tool_calls = openai_tool_calls
+                message.content = ""
+
+        # if "contentBlockStart" in chunk:
+        #     # tool call start
+        #     delta = chunk["contentBlockStart"]["start"]
+        #     if "toolUse" in delta:
+        #         # first index is content
+        #         index = chunk["contentBlockStart"]["contentBlockIndex"] - 1
+        #         message = ChatResponseMessage(
+        #             tool_calls=[
+        #                 ToolCall(
+        #                     index=index,
+        #                     type="function",
+        #                     id=delta["toolUse"]["toolUseId"],
+        #                     function=ResponseFunction(
+        #                         name=delta["toolUse"]["name"],
+        #                         arguments="",
+        #                     ),
+        #                 )
+        #             ]
+        #         )
 
         if "metadata" in chunk:
             # usage information in metadata.
@@ -507,7 +522,7 @@ class OCIGenAIModel(BaseChatModel):
                     )
                 ],
                 usage=usage,
-            )
+                )
 
         return None
 
