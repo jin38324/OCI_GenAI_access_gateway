@@ -203,7 +203,7 @@ class Convertor:
         for tool in openai_tools:
             # if tool.get("type") == "function":
             func = tool.function
-            name = func.name.replace("-","_")
+            name = func.name.replace("--","__")
             description = func.description
             parameters_schema = func.parameters     
                 
@@ -258,7 +258,7 @@ class Convertor:
         openai_tool_calls = []
         for call in cohere_tool_calls:
             function = ResponseFunction(
-                    name = call["name"].replace("_","-"),
+                    name = call["name"].replace("__","--"),
                     arguments = json.dumps(call["parameters"])
                     )            
             # Generate a unique id for the OpenAI tool call

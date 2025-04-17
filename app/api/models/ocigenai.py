@@ -141,12 +141,12 @@ class OCIGenAIModel(BaseChatModel):
 
         # message_id = self.generate_message_id()
         message_id = response.request_id
-
+        model_id = SUPPORTED_OCIGENAI_CHAT_MODELS[chat_request.model]["model_id"]
         events = response.data.events()
         for stream in events:
             chunk = json.loads(stream.data)
             stream_response = self._create_response_stream(
-                model_id=chat_request.model, message_id=message_id, chunk=chunk
+                model_id=model_id, message_id=message_id, chunk=chunk
             )
             if not stream_response:
                 continue
