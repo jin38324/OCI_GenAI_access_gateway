@@ -460,7 +460,10 @@ class OCIGenAIModel(BaseChatModel):
                     #         tool_calls=openai_tool_calls
                     #         )
             elif model_id.startswith("meta"):
-                text = chunk["message"]["content"][0]["text"]
+                if "content" in chunk["message"]:
+                    text = chunk["message"]["content"][0]["text"]
+                else:
+                    text = ""
                 message = ChatResponseMessage(
                     role="assistant",
                     content=text,
