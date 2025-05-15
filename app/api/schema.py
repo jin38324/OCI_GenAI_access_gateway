@@ -257,9 +257,15 @@ class Convertor:
         """
         openai_tool_calls = []
         for call in cohere_tool_calls:
+            try:
+                name = call["name"] #.replace("--","__")
+                parameters = call["parameters"]
+            except:
+                name = call.name
+                parameters = call.parameters
             function = ResponseFunction(
-                    name = call.name.replace("__","--"),
-                    arguments = json.dumps(call.parameters)
+                    name = name,
+                    arguments = json.dumps(parameters)
                     )            
             # Generate a unique id for the OpenAI tool call
             tool_id = base64.b64encode(json.dumps(function.model_dump()).encode())
