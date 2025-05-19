@@ -461,7 +461,10 @@ class OCIGenAIModel(BaseChatModel):
                     #         )
             elif model_id.startswith("meta"):
                 if "content" in chunk["message"]:
-                    text = chunk["message"]["content"][0]["text"]
+                    if chunk["message"]["content"]:
+                        text = chunk["message"]["content"][0]["text"]
+                    else:
+                        text = ""
                 else:
                     text = ""
                 message = ChatResponseMessage(
