@@ -1,8 +1,8 @@
 - region: us-chicago-1
-  compartment_id: ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  compartment_id: ocid1.compartment.oc1..xxxxxxxxxxxxxx
   models:
     ondemand:
-    
+
     # Cohere Command Family
       - name: cohere.command-latest
         model_id: cohere.command-a-03-2025
@@ -31,7 +31,6 @@
         tool_call: true
         stream_tool_call: true
 
-
       - name: meta.llama-4-maverick-17b-128e-instruct-fp8
         model_id: meta.llama-4-maverick-17b-128e-instruct-fp8
         tool_call: true
@@ -59,24 +58,31 @@
         stream_tool_call: true
         multimodal: true
 
+
     embedding:
       - name: cohere.embed-multilingual-v3.0
         model_id: cohere.embed-multilingual-v3.0
+        description: "Provides multilingual classification and embedding support."
 
       - name: cohere.embed-multilingual-v3.1
         model_id: cohere.embed-multilingual-v3.1
+        description: "Provides multilingual classification and embedding support."
 
       - name: cohere.embed-english-v3.0
         model_id: cohere.embed-english-v3.0
+        description: "A model that allows for text to be classified or turned into embeddings. English only."
 
       - name: cohere.embed-english-v3.1
         model_id: cohere.embed-english-v3.1
+        description: "A model that allows for text to be classified or turned into embeddings. English only."
 
       - name: cohere.embed-english-light-v3.0
         model_id: cohere.embed-english-light-v3.0
+        description: "A smaller, faster version of embed-english-v3.0. Almost as capable, but a lot faster. English only."
 
       - name: cohere.embed-multilingual-light-v3.0
         model_id: cohere.embed-multilingual-light-v3.0
+        description: "A smaller, faster version of embed-multilingual-v3.0. Almost as capable, but a lot faster. Supports multiple languages."
 
     dedicated:
       - name: my-dedicated-model-name
@@ -95,12 +101,7 @@
       - name: ODSC-Mistral-7B-Instruct
         endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/predict
         description: "Data science Model deployment for Mistral 7B Instruct model"
-      - name: ODSC-DeepSeek-R1-Distill-Qwen-7B
-        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad.amaaaaaaak7gbriapfx73ogzacbq7hhknz2gql2b72am2f366tyvbgt6rjlq/predict
-        description: "Data science Model deployment for DeepSeek-R1-Distill-Qwen-7B model"
-      - name: ODSC-sql-coder-graph
-        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad.amaaaaaaak7gbriaix76e2sugfw6kivstuld4dchvcoyi7vdfysndrirclra/predict
-        
+
 
 # Modify this file to specify the call information of the model.
 # You can define 3 types of models:
