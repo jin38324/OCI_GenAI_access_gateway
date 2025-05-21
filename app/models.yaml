@@ -95,7 +95,7 @@
         description: "my dedicated model description"
 
 - region: us-ashburn-1
-  compartment_id: ocid1.compartment.oc1..aaaaaaaals7mmltwjf3h2dfl3aflyxqgbsguk6b73mrn4oq7ywsl5r35lhjq
+  compartment_id: ocid1.compartment.oc1..xxxxxxxxxxxxxxxx
   models:
     datascience:
       - name: ODSC-Mistral-7B-Instruct
