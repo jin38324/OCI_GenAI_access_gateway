@@ -24,7 +24,7 @@ class Models(BaseModel):
 
 class ResponseFunction(BaseModel):
     name: str | None = None
-    arguments: str
+    arguments: str | None = None
 
 
 class ToolCall(BaseModel):
@@ -287,13 +287,26 @@ class Convertor:
         """
         openai_tool_calls = []
         for call in llama_tool_calls:
+            id,arguments,name = None, None, None
+            if type(call) == oci_models.FunctionCall:
+                id = call.id
+                name = call.name
+                arguments = call.arguments
+            else:
+                if "id" in call:
+                    id = call["id"]
+                if "arguments" in call:
+                    arguments = call["arguments"]
+                if "name" in call:
+                    name = call["name"]
+
             openai_call = ToolCall(
                 index = len(openai_tool_calls),
-                id = call.id,
+                id = id,
                 type = "function",
                 function = ResponseFunction(
-                    name = call.name,
-                    arguments = call.arguments
+                    name = name,
+                    arguments = arguments
                     )
                 )
             openai_tool_calls.append(openai_call)

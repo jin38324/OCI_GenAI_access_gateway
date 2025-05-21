@@ -454,19 +454,21 @@ class OCIGenAIModel(BaseChatModel):
                         tool_calls=openai_tool_calls
                         )
                 elif "toolCalls" in chunk:
-                    pass
-                    # openai_tool_calls = Convertor.convert_tool_calls_cohere_to_openai(chunk["toolCalls"])
-                    # message = ChatResponseMessage(
-                    #         tool_calls=openai_tool_calls
-                    #         )
+                    # pass
+                    openai_tool_calls = Convertor.convert_tool_calls_cohere_to_openai(chunk["toolCalls"])
+                    message = ChatResponseMessage(
+                        role="assistant",
+                        tool_calls=openai_tool_calls
+                        )
             elif model_id.startswith("meta"):
                 if "content" in chunk["message"]:
                     if chunk["message"]["content"]:
                         text = chunk["message"]["content"][0]["text"]
                     else:
                         text = ""
-                else:
+                elif "toolCalls" in chunk["message"]:
                     text = ""
+                    openai_tool_calls = Convertor.convert_tool_calls_llama_to_openai(chunk["message"]["toolCalls"])
                 message = ChatResponseMessage(
                     role="assistant",
                     content=text,

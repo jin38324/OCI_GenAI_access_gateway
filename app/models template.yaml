@@ -1,0 +1,110 @@
+- region: us-chicago-1
+  compartment_id: ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  models:
+    ondemand:
+    
+    # Cohere Command Family
+      - name: cohere.command-latest
+        model_id: cohere.command-a-03-2025
+        tool_call: true
+        stream_tool_call: true
+        description: "Map the latest model id to cohere.command-latest"
+      
+      - name: cohere.command-a-03-2025
+        model_id: cohere.command-a-03-2025
+        tool_call: true
+        stream_tool_call: true
+
+      - name: cohere.command-r-plus-08-2024
+        model_id: cohere.command-r-plus-08-2024
+        tool_call: true
+        stream_tool_call: true
+
+      - name: cohere.command-r-08-2024
+        model_id: cohere.command-r-08-2024
+        tool_call: true
+        stream_tool_call: true
+
+    # Meta Llama Family
+      - name: meta.llama-latest
+        model_id: meta.llama-4-maverick-17b-128e-instruct-fp8
+        tool_call: true
+        stream_tool_call: true
+
+
+      - name: meta.llama-4-maverick-17b-128e-instruct-fp8
+        model_id: meta.llama-4-maverick-17b-128e-instruct-fp8
+        tool_call: true
+        stream_tool_call: true
+
+      - name: meta.llama-4-scout-17b-16e-instruct
+        model_id: meta.llama-4-scout-17b-16e-instruct
+        tool_call: true
+        stream_tool_call: true
+        
+      - name: meta.llama-3.3-70b-instruct
+        model_id: meta.llama-3.3-70b-instruct
+        tool_call: true
+        stream_tool_call: true
+
+      - name: meta.llama-3.2-11b-vision-instruct
+        model_id: meta.llama-3.2-11b-vision-instruct
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
+
+      - name: meta.llama-3.2-90b-vision-instruct
+        model_id: meta.llama-3.2-90b-vision-instruct
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
+
+    embedding:
+      - name: cohere.embed-multilingual-v3.0
+        model_id: cohere.embed-multilingual-v3.0
+
+      - name: cohere.embed-multilingual-v3.1
+        model_id: cohere.embed-multilingual-v3.1
+
+      - name: cohere.embed-english-v3.0
+        model_id: cohere.embed-english-v3.0
+
+      - name: cohere.embed-english-v3.1
+        model_id: cohere.embed-english-v3.1
+
+      - name: cohere.embed-english-light-v3.0
+        model_id: cohere.embed-english-light-v3.0
+
+      - name: cohere.embed-multilingual-light-v3.0
+        model_id: cohere.embed-multilingual-light-v3.0
+
+    dedicated:
+      - name: my-dedicated-model-name
+        endpoint: https://ocid1.generativeaiendpoint....  # endpoint url for dedicated model
+        description: "my dedicated model description"
+
+    datascience:
+      - name: my-datascience-model-name
+        endpoint: https://modeldeployment.xxxxxx/predict  # Model deployment endpoint url
+        description: "my dedicated model description"
+
+- region: us-ashburn-1
+  compartment_id: ocid1.compartment.oc1..aaaaaaaals7mmltwjf3h2dfl3aflyxqgbsguk6b73mrn4oq7ywsl5r35lhjq
+  models:
+    datascience:
+      - name: ODSC-Mistral-7B-Instruct
+        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/predict
+        description: "Data science Model deployment for Mistral 7B Instruct model"
+
+
+# Modify this file to specify the call information of the model.
+# You can define 3 types of models:
+# ondemand: pre-trained model on OCI generative AI
+# dedicated: dedicated model on OCI generative AI, including dedicated infrastructure, fine-tuned model, etc.
+# datascience: model deployed by OCI data science service
+
+# Where:
+# region: the region where the model is located
+# compartment_id: the compartment where the model is located
+# name: any specified model name, use this name to point to different models when calling
+# model_id: for ondemand, it is the model id, for dedicated and datascience, it is the call endpoint
