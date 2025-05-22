@@ -390,9 +390,9 @@ class OCIGenAIModel(BaseChatModel):
                 elif message["role"] == "ASSISTANT":
                     content = None
                     tool_calls = None
-
-                    if message["content"]:
-                        content = [oci_models.TextContent(type = "TEXT",text = c["text"]) for c in message["content"]]
+                    if "content" in message:
+                        if message["content"]:
+                            content = [oci_models.TextContent(type = "TEXT",text = c["text"]) for c in message["content"]]
                     
                     if "tool_calls" in message:
                         if message["tool_calls"]:
