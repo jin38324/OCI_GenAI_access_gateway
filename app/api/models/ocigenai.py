@@ -365,8 +365,28 @@ class OCIGenAIModel(BaseChatModel):
             meta_messages = []
             for message in messages:
                 message["role"] = message["role"].upper()
-                if message["role"] == "TOOL":
+                if message["role"] == "SYSTEM":
+                    meta_message = oci_models.SystemMessage(
+                        role = "SYSTEM",
+                        content = [oci_models.TextContent(type = "TEXT",text = c["text"]) for c in message["content"]]
+                    )
+
+                elif message["role"] == "USER":
+                    content = []
+                    for c in message["content"]:
+                        if c["type"] == "TEXT":
+                            content.append(oci_models.TextContent(type = "TEXT",text = c["text"]))
+                        elif c["type"] == "IMAGE":
+                            content.append(oci_models.ImageContent(type = "IMAGE",image_url  = c["imageUrl"]))                        
+
+                    meta_message = oci_models.UserMessage(
+                        role = "USER",
+                        content = content
+                        )
+                
+                elif message["role"] == "TOOL":
                     meta_message = Convertor.convert_tool_result_openai_to_llama(message)
+
                 elif message["role"] == "ASSISTANT":
                     content = None
                     tool_calls = None
