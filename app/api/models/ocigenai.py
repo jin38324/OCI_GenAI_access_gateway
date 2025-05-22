@@ -366,16 +366,25 @@ class OCIGenAIModel(BaseChatModel):
             for message in messages:
                 message["role"] = message["role"].upper()
                 if message["role"] == "TOOL":
-                    message = Convertor.convert_tool_result_openai_to_llama(message)
+                    meta_message = Convertor.convert_tool_result_openai_to_llama(message)
                 elif message["role"] == "ASSISTANT":
-                    if message["tool_calls"]:
-                        message = oci_models.AssistantMessage(
-                            role = "ASSISTANT",
-                            content = None,
-                            tool_calls = Convertor.convert_tool_calls_openai_to_llama(message["tool_calls"])
-                            )
+                    content = None
+                    tool_calls = None
 
-                meta_messages.append(message)
+                    if message["content"]:
+                        content = [oci_models.TextContent(type = "TEXT",text = c["text"]) for c in message["content"]]
+                    
+                    if "tool_calls" in message:
+                        if message["tool_calls"]:
+                            tool_calls = Convertor.convert_tool_calls_openai_to_llama(message["tool_calls"])
+
+                    meta_message = oci_models.AssistantMessage(
+                        role = "ASSISTANT",
+                        content = content,
+                        tool_calls = tool_calls
+                        )
+
+                    meta_messages.append(meta_message)
             generic_chatRequest.messages = meta_messages
             chat_detail.chat_request = generic_chatRequest
         return chat_detail
@@ -481,26 +490,6 @@ class OCIGenAIModel(BaseChatModel):
                 openai_tool_calls = Convertor.convert_tool_calls_cohere_to_openai(chunk["toolCalls"])
                 message.tool_calls = openai_tool_calls
                 message.content = ""
-
-        # if "contentBlockStart" in chunk:
-        #     # tool call start
-        #     delta = chunk["contentBlockStart"]["start"]
-        #     if "toolUse" in delta:
-        #         # first index is content
-        #         index = chunk["contentBlockStart"]["contentBlockIndex"] - 1
-        #         message = ChatResponseMessage(
-        #             tool_calls=[
-        #                 ToolCall(
-        #                     index=index,
-        #                     type="function",
-        #                     id=delta["toolUse"]["toolUseId"],
-        #                     function=ResponseFunction(
-        #                         name=delta["toolUse"]["name"],
-        #                         arguments="",
-        #                     ),
-        #                 )
-        #             ]
-        #         )
 
         if "metadata" in chunk:
             # usage information in metadata.
