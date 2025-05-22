@@ -383,8 +383,10 @@ class OCIGenAIModel(BaseChatModel):
                         content = content,
                         tool_calls = tool_calls
                         )
+                else:
+                    meta_message = message
 
-                    meta_messages.append(meta_message)
+                meta_messages.append(meta_message)
             generic_chatRequest.messages = meta_messages
             chat_detail.chat_request = generic_chatRequest
         return chat_detail
