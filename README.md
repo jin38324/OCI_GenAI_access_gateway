@@ -19,6 +19,7 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 *This is a project inspired by [aws-samples/bedrock-access-gateway](https://github.com/aws-samples/bedrock-access-gateway/tree/main)*
 
 # Change log
+- 20250523: Fixed a series of major bugs in meta model function calls
 - 20250407: Now support tool call for both cohere and llama in stream/non-stream mode. Set `tool_call: true` and `stream_tool_call:true` in `models.yaml`
 - 20250221: Now support image input for multimodal model like `meta.llama-3.2-90b-vision-instruct`
 - 20250121: Add `gunicorn` to support parallel threads, get a 9x speed up. Thanks to [@streamnsight](https://github.com/jin38324/OCI_GenAI_access_gateway/pull/4)
