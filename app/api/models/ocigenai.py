@@ -280,7 +280,7 @@ class OCIGenAIModel(BaseChatModel):
             compartment_id = compartment_id,
             serving_mode = servingMode,
             # chat_request = chatRequest
-            )  
+            )
         
         if provider == "cohere":
             cohere_chatRequest = oci_models.CohereChatRequest(**inference_config)
@@ -352,7 +352,7 @@ class OCIGenAIModel(BaseChatModel):
                 cohere_chatRequest.chat_history = chatHistory
             chat_detail.chat_request = cohere_chatRequest
 
-        elif provider == "meta":
+        elif provider == "meta" or provider == "openai":
             generic_chatRequest = oci_models.GenericChatRequest(**inference_config)
             generic_chatRequest.numGenerations = chat_request.n
             generic_chatRequest.topK = -1
@@ -491,7 +491,7 @@ class OCIGenAIModel(BaseChatModel):
                         role="assistant",
                         tool_calls=openai_tool_calls
                         )
-            elif model_id.startswith("meta"):
+            elif model_id.startswith("meta") or model_id.startswith("openai"):
                 if "content" in chunk["message"]:
                     if chunk["message"]["content"]:
                         text = chunk["message"]["content"][0]["text"]

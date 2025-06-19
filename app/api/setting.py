@@ -62,6 +62,8 @@ for m in MODEL_SETTINGS:
             m["provider"] = "cohere"
         elif m["model_id"].startswith("meta"):
             m["provider"] = "meta"
+        elif m["model_id"].startswith("openai"):
+            m["provider"] = "openai"
         SUPPORTED_OCIGENAI_CHAT_MODELS[m['name']] = m        
     elif m['type'] == "dedicated":
         m["provider"] = "dedicated"

@@ -351,7 +351,7 @@ class Convertor:
         return llama_tool_calls
     
     @staticmethod
-    def convert_tool_result_openai_to_llama(openai_tool_message) -> list[oci_models.CohereToolCall]:
+    def convert_tool_result_openai_to_llama(openai_tool_message) -> oci_models.ToolMessage:
         """
         Convert an OpenAI tool message into an OCI ToolMessage object.
         """
