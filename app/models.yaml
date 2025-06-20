@@ -1,5 +1,5 @@
 - region: us-chicago-1
-  compartment_id: ocid1.tenancy.oc1..aaaaaaaaxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  compartment_id: ocid1.xxxxxxxxxxxxxxxxxxxxxxxxxx
   models:
     ondemand:
 
@@ -184,8 +184,13 @@
         description: "A smaller, faster version of embed-multilingual-v3.0. Almost as capable, but a lot faster. Supports multiple languages."
 
     dedicated:
+      - name: sandbox_generativeaiendpointllama3_3
+        provider: meta
+        endpoint: ocid1.generativeaiendpoint.oc1.us-chicago-1................
+        description: "Sandbox dedicated model description"
+
       - name: my-dedicated-model-name
-        endpoint: https://ocid1.generativeaiendpoint....  # endpoint url for dedicated model
+        endpoint: ocid1.generativeaiendpoint.....  # endpoint ocid for dedicated model
         description: "my dedicated model description"
 
     datascience:
@@ -198,13 +203,13 @@
   models:
     datascience:
       - name: ODSC-Mistral-7B-Instruct
-        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/predict
+        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad............./predict
         description: "Data science Model deployment for Mistral 7B Instruct model"
       - name: ODSC-DeepSeek-R1-Distill-Qwen-7B
-        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad.amaaaaaaak7gbriapfx73ogzacbq7hhknz2gql2b72am2f366tyvbgt6rjlq/predict
+        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad............/predict
         description: "Data science Model deployment for DeepSeek-R1-Distill-Qwen-7B model"
       - name: ODSC-sql-coder-graph
-        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad.amaaaaaaak7gbriaix76e2sugfw6kivstuld4dchvcoyi7vdfysndrirclra/predict
+        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad............/predict
         
 
 # Modify this file to specify the call information of the model.

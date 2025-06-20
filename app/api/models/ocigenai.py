@@ -261,16 +261,19 @@ class OCIGenAIModel(BaseChatModel):
             }
 
         model_name = chat_request.model
+        type = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]["type"]
         provider = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]["provider"]
         compartment_id = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]["compartment_id"]
 
-        if provider == "dedicated":
+        print("provider:",provider)
+
+        if type == "dedicated":
             endpoint = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]["endpoint"]
             servingMode = oci_models.DedicatedServingMode(
                 serving_type = "DEDICATED",
                 endpoint_id = endpoint
                 )
-        else:
+        elif type == "ondemand":
             model_id = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]["model_id"]
             servingMode = oci_models.OnDemandServingMode(
                 serving_type = "ON_DEMAND",
@@ -409,6 +412,7 @@ class OCIGenAIModel(BaseChatModel):
                 meta_messages.append(meta_message)
             generic_chatRequest.messages = meta_messages
             chat_detail.chat_request = generic_chatRequest
+        print(chat_detail)
         return chat_detail
 
     def _create_response(

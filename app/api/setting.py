@@ -39,11 +39,13 @@ def parse_model_settings(yaml_file):
                 m["region"] = i['region']
                 m["compartment_id"] = i['compartment_id']
                 m["type"] = k
+                if "provider" in i:
+                    m["provider"] = i["provider"]
                 model_settings.append(m)
     return model_settings
 
 
-MODEL_SETTINGS = parse_model_settings(os.path.join(parent_dir, 'models.yaml'))
+MODEL_SETTINGS = parse_model_settings(os.path.join(parent_dir, MODEL_FILE))
 
 SUPPORTED_OCIGENAI_EMBEDDING_MODELS = {}
 SUPPORTED_OCIGENAI_CHAT_MODELS = {}
@@ -66,7 +68,8 @@ for m in MODEL_SETTINGS:
             m["provider"] = "openai"
         SUPPORTED_OCIGENAI_CHAT_MODELS[m['name']] = m        
     elif m['type'] == "dedicated":
-        m["provider"] = "dedicated"
         SUPPORTED_OCIGENAI_CHAT_MODELS[m['name']] = m
     elif m['type'] == "datascience":
         SUPPORTED_OCIODSC_CHAT_MODELS[m['name']] = m
+
+print(SUPPORTED_OCIGENAI_CHAT_MODELS)
