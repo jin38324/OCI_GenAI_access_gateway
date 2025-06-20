@@ -19,6 +19,7 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 *This is a project inspired by [aws-samples/bedrock-access-gateway](https://github.com/aws-samples/bedrock-access-gateway/tree/main)*
 
 # Change log
+- 20250620: Made fixes and tests on the dedecate endpoint
 - 20250619: Support OpenAI models on OCI
 - 20250523: Fixed a series of major bugs in meta model function calls
 - 20250407: Now support tool call for both cohere and llama in stream/non-stream mode. Set `tool_call: true` and `stream_tool_call:true` in `models.yaml`
