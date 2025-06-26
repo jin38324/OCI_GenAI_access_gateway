@@ -265,8 +265,6 @@ class OCIGenAIModel(BaseChatModel):
         provider = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]["provider"]
         compartment_id = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]["compartment_id"]
 
-        print("provider:",provider)
-
         if type == "dedicated":
             endpoint = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]["endpoint"]
             servingMode = oci_models.DedicatedServingMode(
@@ -355,7 +353,7 @@ class OCIGenAIModel(BaseChatModel):
                 cohere_chatRequest.chat_history = chatHistory
             chat_detail.chat_request = cohere_chatRequest
 
-        elif provider == "meta" or provider == "openai":
+        elif provider == "meta" or provider == "openai" or provider == "xai":
             generic_chatRequest = oci_models.GenericChatRequest(**inference_config)
             generic_chatRequest.numGenerations = chat_request.n
             generic_chatRequest.topK = -1
@@ -436,8 +434,9 @@ class OCIGenAIModel(BaseChatModel):
                 message.content = chat_response.text
         elif type(chat_response) == oci_models.GenericChatResponse:
             finish_reason = chat_response.choices[-1].finish_reason
-            if chat_response.choices[0].finish_reason == "tool_calls":
-                oepnai_tool_calls = Convertor.convert_tool_calls_llama_to_openai(chat_response.choices[0].message.tool_calls)
+            response_tool_calls = chat_response.choices[0].message.tool_calls
+            if chat_response.choices[0].finish_reason == "tool_calls" or response_tool_calls:
+                oepnai_tool_calls = Convertor.convert_tool_calls_llama_to_openai(response_tool_calls)
                 message.tool_calls = oepnai_tool_calls
                 message.content = None
             else:
@@ -495,7 +494,7 @@ class OCIGenAIModel(BaseChatModel):
                         role="assistant",
                         tool_calls=openai_tool_calls
                         )
-            elif model_id.startswith("meta") or model_id.startswith("openai"):
+            elif model_id.startswith("meta") or model_id.startswith("openai") or model_id.startswith("xai"):
                 if "content" in chunk["message"]:
                     if chunk["message"]["content"]:
                         text = chunk["message"]["content"][0]["text"]

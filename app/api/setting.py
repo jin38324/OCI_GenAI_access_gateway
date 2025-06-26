@@ -66,10 +66,12 @@ for m in MODEL_SETTINGS:
             m["provider"] = "meta"
         elif m["model_id"].startswith("openai"):
             m["provider"] = "openai"
+        elif m["model_id"].startswith("xai"):
+            m["provider"] = "xai"
         SUPPORTED_OCIGENAI_CHAT_MODELS[m['name']] = m        
     elif m['type'] == "dedicated":
         SUPPORTED_OCIGENAI_CHAT_MODELS[m['name']] = m
     elif m['type'] == "datascience":
         SUPPORTED_OCIODSC_CHAT_MODELS[m['name']] = m
 
-print(SUPPORTED_OCIGENAI_CHAT_MODELS)
+# print(SUPPORTED_OCIGENAI_CHAT_MODELS)

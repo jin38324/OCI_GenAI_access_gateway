@@ -1,5 +1,5 @@
 - region: us-chicago-1
-  compartment_id: ocid1.compartment.oc1............
+  compartment_id: ocid1.compartment.oc1........
   models:
     ondemand:
 
@@ -57,6 +57,37 @@
         tool_call: true
         stream_tool_call: true
         multimodal: true
+
+    # Grok Familly
+      - name: xai.grok-default
+        model_id: xai.grok-3
+        tool_call: true
+        stream_tool_call: true
+        multimodal: false
+
+      - name: xai.grok-3
+        model_id: xai.grok-3
+        tool_call: true
+        stream_tool_call: true
+        multimodal: false
+
+      - name: xai.grok-3-fast
+        model_id: xai.grok-3-fast
+        tool_call: true
+        stream_tool_call: true
+        multimodal: false
+
+      - name: xai.grok-3-mini
+        model_id: xai.grok-3-mini
+        tool_call: true
+        stream_tool_call: true
+        multimodal: false
+
+      - name: xai.grok-3-mini-fast
+        model_id: xai.grok-3-mini-fast
+        tool_call: true
+        stream_tool_call: true
+        multimodal: false   
 
 
     # OpenAI Family

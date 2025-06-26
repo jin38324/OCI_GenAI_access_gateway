@@ -3,6 +3,7 @@ RELOAD = True
 DEBUG = True
 DEFAULT_API_KEYS = "ocigenerativeai"
 API_ROUTE_PREFIX = "/v1"
+MODEL_FILE = "models.yaml"
 
 EMBED_TRUNCATE = "END"
 # One of NONE|START|END to specify how the API will handle inputs longer than the maximum token length.
