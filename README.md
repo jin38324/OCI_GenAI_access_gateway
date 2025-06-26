@@ -20,9 +20,9 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 
 # Change log
 
-- 20260626: Now support Grok models from XAI on Oracle Cloud
-- 20250620: Made fixes and tests on the dedicate endpoint
-- 20250619: Support OpenAI models on OCI
+- 20260626: Now support **Grok models** from XAI on Oracle Cloud
+- 20250620: Made fixes and tests on the **dedicate endpoint**
+- 20250619: Support **OpenAI** models on OCI
 - 20250523: Fixed a series of major bugs in meta model function calls
 - 20250407: Now support tool call for both cohere and llama in stream/non-stream mode. Set `tool_call: true` and `stream_tool_call:true` in `models.yaml`
 - 20250221: Now support image input for multimodal model like `meta.llama-3.2-90b-vision-instruct`
