@@ -33,6 +33,7 @@ from api.schema import (
     ToolCall,
     ChoiceDelta,
     UserMessage,
+    SystemMessage,
     AssistantMessage,
     ToolMessage,
     Function,
@@ -191,7 +192,7 @@ class OCIGenAIModel(BaseChatModel):
 
     def _parse_messages(self, chat_request: ChatRequest) -> list[dict]:
         """
-        Converse API only support user and assistant messages.
+        Converse API support user, system, assistant and tool messages.
 
         example output: [{
             "role": "user",
@@ -204,6 +205,15 @@ class OCIGenAIModel(BaseChatModel):
         messages = []
         for message in chat_request.messages:
             if isinstance(message, UserMessage):
+                messages.append(
+                    {
+                        "role": message.role,
+                        "content": self._parse_content_parts(
+                            message, chat_request.model
+                        ),
+                    }
+                )
+            elif isinstance(message, SystemMessage):
                 messages.append(
                     {
                         "role": message.role,
@@ -234,7 +244,7 @@ class OCIGenAIModel(BaseChatModel):
                 )
 
             else:
-                # ignore others, such as system messages
+                # ignore others
                 continue
         return messages
 
@@ -550,7 +560,7 @@ class OCIGenAIModel(BaseChatModel):
 
     def _parse_content_parts(
             self,
-            message: UserMessage,
+            message: UserMessage | SystemMessage,
             model_id: str,
     ) -> list[dict]:
         if isinstance(message.content, str):
