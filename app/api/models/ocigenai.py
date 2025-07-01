@@ -257,9 +257,7 @@ class OCIGenAIModel(BaseChatModel):
         """
 
         messages = self._parse_messages(chat_request)
-        system_prompts = self._parse_system_prompts(chat_request)
         
-
         # Base inference parameters.        
         inference_config = {
             "max_tokens": chat_request.max_tokens,
@@ -295,9 +293,6 @@ class OCIGenAIModel(BaseChatModel):
         
         if provider == "cohere":
             cohere_chatRequest = oci_models.CohereChatRequest(**inference_config)
-            if system_prompts:
-                cohere_chatRequest.preamble_override = ' '.join(system_prompts)
-            
             # add tools
             if chat_request.tools:
                 cohere_tools = Convertor.convert_tools_openai_to_cohere(chat_request.tools)
