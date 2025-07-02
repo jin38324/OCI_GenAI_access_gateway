@@ -364,15 +364,18 @@ class OCIGenAIModel(BaseChatModel):
                 generic_chatRequest.tools = llama_tools
 
             meta_messages = []
-            for message in messages:
-                message["role"] = message["role"].upper()
-                if message["role"] == "SYSTEM":
-                    meta_message = oci_models.SystemMessage(
-                        role = "SYSTEM",
-                        content = [oci_models.TextContent(type = "TEXT",text = c["text"]) for c in message["content"]]
-                    )
 
-                elif message["role"] == "USER":
+            if system_prompts:
+                meta_message = oci_models.SystemMessage(
+                    role = "SYSTEM",
+                    content = [oci_models.TextContent(type = "TEXT",text = ' '.join(system_prompts))]
+                )
+                meta_messages.append(meta_message)
+
+            for message in messages:
+                message["role"] = message["role"].upper()                
+
+                if message["role"] == "USER":
                     content = []
                     for c in message["content"]:
                         if c["type"] == "TEXT":
