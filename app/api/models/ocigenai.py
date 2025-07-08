@@ -16,7 +16,6 @@ from api.setting import CLIENT_KWARGS, \
 
 import numpy as np
 import requests
-import tiktoken
 from fastapi import HTTPException
 
 from api.models.base import BaseChatModel, BaseEmbeddingsModel
@@ -54,8 +53,6 @@ logger = logging.getLogger(__name__)
 generative_ai_inference_client = oci.generative_ai_inference.GenerativeAiInferenceClient(
     **CLIENT_KWARGS
 )
-
-ENCODER = tiktoken.get_encoding("cl100k_base")
 
 
 class OCIGenAIModel(BaseChatModel):
@@ -710,20 +707,20 @@ class CohereEmbeddingsModel(OCIGenAIEmbeddingsModel):
             texts = [embeddings_request.input]
         elif isinstance(embeddings_request.input, list):
             texts = embeddings_request.input
-        elif isinstance(embeddings_request.input, Iterable):
-            # For encoded input
-            # The workaround is to use tiktoken to decode to get the original text.
-            encodings = []
-            for inner in embeddings_request.input:
-                if isinstance(inner, int):
-                    # Iterable[int]
-                    encodings.append(inner)
-                else:
-                    # Iterable[Iterable[int]]
-                    text = ENCODER.decode(list(inner))
-                    texts.append(text)
-            if encodings:
-                texts.append(ENCODER.decode(encodings))
+        # elif isinstance(embeddings_request.input, Iterable):
+        #     # For encoded input
+        #     # The workaround is to use tiktoken to decode to get the original text.
+        #     encodings = []
+        #     for inner in embeddings_request.input:
+        #         if isinstance(inner, int):
+        #             # Iterable[int]
+        #             encodings.append(inner)
+        #         else:
+        #             # Iterable[Iterable[int]]
+        #             text = ENCODER.decode(list(inner))
+        #             texts.append(text)
+        #     if encodings:
+        #         texts.append(ENCODER.decode(encodings))
 
         # Maximum of 2048 characters
         args = {
