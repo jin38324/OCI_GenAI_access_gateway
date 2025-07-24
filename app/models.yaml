@@ -65,6 +65,12 @@
         stream_tool_call: true
         multimodal: false
 
+      - name: xai.grok-4
+        model_id: xai.grok-4
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
+
       - name: xai.grok-3
         model_id: xai.grok-3
         tool_call: true
