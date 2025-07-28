@@ -125,7 +125,7 @@ So I abandoned hard-coding model information in the code and instead defined the
 
 Don't worry, most of the models have been written well in the file, you just need to use them.
 
-== You can change your `models.yaml` in your runtime if new models are avaliable. ==
+**You can change your `models.yaml` in your runtime if new models are avaliable.**
 
 You can define 4 types of models:
 - **ondemand**: pre-trained chat model provided by OCI generative AI service, accessed through a unified API.
