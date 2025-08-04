@@ -106,6 +106,9 @@ class OCIGenAIModel(BaseChatModel):
             response = generative_ai_inference_client.chat(chat_detail)
             if DEBUG and not chat_detail.chat_request.is_stream:
                 logger.info("OCI Generative AI response:\n" + json.dumps(json.loads(str(response.data)), ensure_ascii=False))
+        except oci.exceptions.ServiceError as e:
+            logger.error(f"[_invoke_genai] OCI ServiceError: Status Code: {e.status}. Message: {e.message}")
+            raise HTTPException(status_code=e.status, detail=e.message)        
         except Exception as e:
             logger.error(e)
             raise HTTPException(status_code=500, detail=str(e))
