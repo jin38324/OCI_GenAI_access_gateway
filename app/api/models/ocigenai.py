@@ -117,8 +117,11 @@ class OCIGenAIModel(BaseChatModel):
             temp_chat_request = copy.deepcopy(chat_request)
             for message in temp_chat_request.messages:
                 for c in message.content:
-                    if c.type == "image_url":
-                        c.image_url.url = c.image_url.url[:50] + "..."
+                    try:
+                        if c.type == "image_url":
+                            c.image_url.url = c.image_url.url[:50] + "..."
+                    except:
+                        pass
             logger.info("Raw request:\n" + temp_chat_request.model_dump_json())
 
         # convert OpenAI chat request to OCI Generative AI SDK request
@@ -127,8 +130,11 @@ class OCIGenAIModel(BaseChatModel):
             temp_chat_detail = copy.deepcopy(chat_detail)
             for message in temp_chat_detail.chat_request.messages:
                 for c in message.content:
-                    if c.type == "IMAGE":
-                        c.image_url["url"] = c.image_url["url"][:50] + "..."
+                    try:
+                        if c.type == "IMAGE":
+                            c.image_url["url"] = c.image_url["url"][:50] + "..."
+                    except:
+                        pass
             logger.info("OCI Generative AI request:\n" + json.dumps(json.loads(str(temp_chat_detail)), ensure_ascii=False))
         try:
             region = SUPPORTED_OCIGENAI_CHAT_MODELS[chat_request.model]["region"]
