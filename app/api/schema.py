@@ -250,59 +250,20 @@ class Convertor:
         return llama_tools
     
     @staticmethod
-    def convert_tool_calls_cohere_to_openai(cohere_tool_calls) -> list[ToolCall]:
+    def convert_tool_calls_to_openai(tool_calls, vendor=None) -> list[ToolCall]:
         """
         Convert a list of Cohere tool calls into a list of OpenAI tool calls.        
         Returns: list: List of OpenAI tool call dictionaries.
         """
         openai_tool_calls = []
-        for call in cohere_tool_calls:
-            try:
-                name = call["name"] #.replace("--","__")
-                parameters = call["parameters"]
-            except:
-                name = call.name
-                parameters = call.parameters
-            function = ResponseFunction(
-                    name = name,
-                    arguments = json.dumps(parameters)
-                    )            
-            # Generate a unique id for the OpenAI tool call
-            tool_id = base64.b64encode(json.dumps(function.model_dump()).encode())
-
-            openai_call = ToolCall(
-                index = len(openai_tool_calls),
-                id = tool_id,
-                type = "function",
-                function = function
-                )
-            openai_tool_calls.append(openai_call)
-        return openai_tool_calls
-
-    @staticmethod
-    def convert_tool_calls_llama_to_openai(llama_tool_calls) -> list[ToolCall]:
-        """
-        Convert a list of Llama tool calls into a list of OpenAI tool calls.        
-        Returns: list: List of OpenAI tool call dictionaries.
-        """
-        openai_tool_calls = []
-        for call in llama_tool_calls:
-            id,arguments,name = None, None, None
-            if type(call) == oci_models.FunctionCall:
-                id = call.id
-                name = call.name
-                arguments = call.arguments
+        for call in tool_calls:
+            name = call["name"]
+            if vendor == "cohere":
+                arguments = str(call["parameters"])
             else:
-                if "id" in call:
-                    id = call["id"]
-                if "arguments" in call:
-                    arguments = call["arguments"]
-                if "name" in call:
-                    name = call["name"]
-
+                arguments = call["arguments"]
             openai_call = ToolCall(
-                index = len(openai_tool_calls),
-                id = id,
+                id = name,
                 type = "function",
                 function = ResponseFunction(
                     name = name,
@@ -311,6 +272,7 @@ class Convertor:
                 )
             openai_tool_calls.append(openai_call)
         return openai_tool_calls
+
         
     @staticmethod
     def convert_tool_calls_openai_to_cohere(openai_tool_calls) -> list[oci_models.CohereToolCall]:

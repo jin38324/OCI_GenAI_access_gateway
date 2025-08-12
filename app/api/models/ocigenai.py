@@ -44,6 +44,9 @@ from api.schema import (
     Convertor
 )
 from config import EMBED_TRUNCATE
+from .call_api import patched_call_api
+from oci.base_client import BaseClient 
+BaseClient.call_api = patched_call_api
 
 logging.basicConfig(format='%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                     datefmt='%Y-%m-%d:%H:%M:%S',
@@ -58,6 +61,7 @@ generative_ai_inference_client = oci.generative_ai_inference.GenerativeAiInferen
 class OCIGenAIModel(BaseChatModel):
     # https://docs.oracle.com/en-us/iaas/Content/generative-ai/pretrained-models.htm
     # https://docs.oracle.com/en-us/iaas/data-science/using/ai-quick-actions-model-deploy.htm
+
     _supported_models = {}
 
     for model in SUPPORTED_OCIGENAI_CHAT_MODELS:
@@ -70,7 +74,23 @@ class OCIGenAIModel(BaseChatModel):
         }
 
     def list_models(self) -> list[str]:
-        return list(self._supported_models.keys())
+        try:
+            generative_ai_client = oci.generative_ai.GenerativeAiClient(
+                **CLIENT_KWARGS
+            )
+            first_key = next(iter(SUPPORTED_OCIGENAI_CHAT_MODELS))
+            compartment_id = SUPPORTED_OCIGENAI_CHAT_MODELS[first_key]["compartment_id"]
+            list_models_response = generative_ai_client.list_models(
+                    compartment_id=compartment_id,
+                    capability=["TEXT_GENERATION"]
+                    )
+            # valid_models = [model.display_name for model in list_models_response.data.items]
+            logger.info("Successfully validated models")
+            return list(self._supported_models.keys())
+        except Exception as e:
+            logger.error(e)
+            raise HTTPException(status_code=500, detail=str(e))
+
 
     def validate(self, chat_request: ChatRequest):
         """Perform basic validation on requests"""
@@ -103,9 +123,31 @@ class OCIGenAIModel(BaseChatModel):
             region = SUPPORTED_OCIGENAI_CHAT_MODELS[chat_request.model]["region"]
             # generative_ai_inference_client.base_client.config["region"] = region
             generative_ai_inference_client.base_client._endpoint = INFERENCE_ENDPOINT_TEMPLATE.replace("{region}", region)
-            response = generative_ai_inference_client.chat(chat_detail)
+            # response = generative_ai_inference_client.chat(chat_detail)
+            
+            body = generative_ai_inference_client.base_client.sanitize_for_serialization(chat_detail) 
+
+            if "isStream" in body["chatRequest"]:
+                if body["chatRequest"]["isStream"]:
+                    body["chatRequest"]["streamOptions"] = {"isIncludeUsage": True}
+            body = json.dumps(body)
+
+            #response = client.chat(chat_detail)
+            response = generative_ai_inference_client.base_client.call_api(
+                resource_path="/actions/chat",
+                method="POST",
+                operation_name="chat",
+                header_params={
+                    "accept": "application/json, text/event-stream",
+                    "content-type": "application/json"
+                },
+                body=body,
+                #response_type="ChatResult"
+                )
+
             if DEBUG and not chat_detail.chat_request.is_stream:
-                logger.info("OCI Generative AI response:\n" + json.dumps(json.loads(str(response.data)), ensure_ascii=False))
+                content = json.dumps(json.loads(response.data.content), ensure_ascii=False)
+                logger.info("OCI Generative AI response:\n" + content)
         except oci.exceptions.ServiceError as e:
             logger.error(f"[_invoke_genai] OCI ServiceError: Status Code: {e.status}. Message: {e.message}")
             raise HTTPException(status_code=e.status, detail=e.message)        
@@ -120,14 +162,22 @@ class OCIGenAIModel(BaseChatModel):
         # message_id = self.generate_message_id()
         response = self._invoke_genai(chat_request)
         message_id = response.request_id
-
-        chat_response = self._create_response(
-            model=response.data.model_id,
-            message_id=message_id,
-            chat_response=response.data.chat_response,
-            input_tokens=0,
-            output_tokens=0,
-        )
+        model_id = chat_request.model
+        data = json.loads(response.data.content)
+        prompt_tokens = data["chatResponse"]["usage"]["promptTokens"]
+        total_tokens = data["chatResponse"]["usage"]["totalTokens"]
+        completion_tokens = total_tokens - prompt_tokens
+        try:
+            chat_response = self._create_response(
+                model=model_id,
+                message_id=message_id,
+                chat_response=data["chatResponse"],
+                input_tokens=prompt_tokens,
+                output_tokens=completion_tokens,
+            )
+        except Exception as e:
+            logger.error(e)
+            raise HTTPException(status_code=500, detail="ERROR _create_response: " + str(e))        
         if DEBUG:
             logger.info("Proxy response :" + chat_response.model_dump_json())
         return chat_response
@@ -141,7 +191,7 @@ class OCIGenAIModel(BaseChatModel):
 
         # message_id = self.generate_message_id()
         message_id = response.request_id
-        model_id = SUPPORTED_OCIGENAI_CHAT_MODELS[chat_request.model]["model_id"]
+        model_id = SUPPORTED_OCIGENAI_CHAT_MODELS[chat_request.model]["model_id"]        
         events = response.data.events()
         for stream in events:
             chunk = json.loads(stream.data)
@@ -427,23 +477,27 @@ class OCIGenAIModel(BaseChatModel):
             output_tokens: int = 0,
     ) -> ChatResponse:
         message = ChatResponseMessage(role="assistant")
-        if type(chat_response) == oci_models.CohereChatResponse:
-            finish_reason = chat_response.finish_reason
-            if chat_response.tool_calls:
-                oepnai_tool_calls = Convertor.convert_tool_calls_cohere_to_openai(chat_response.tool_calls)
+        if model.startswith("cohere"):
+            finish_reason = chat_response["finishReason"]
+            if "toolCalls" in chat_response:
+                oepnai_tool_calls = Convertor.convert_tool_calls_to_openai(chat_response["toolCalls"],vendor="cohere")
                 message.tool_calls = oepnai_tool_calls
                 message.content = None
             else:
-                message.content = chat_response.text
-        elif type(chat_response) == oci_models.GenericChatResponse:
-            finish_reason = chat_response.choices[-1].finish_reason
-            response_tool_calls = chat_response.choices[0].message.tool_calls
-            if chat_response.choices[0].finish_reason == "tool_calls" or response_tool_calls:
-                oepnai_tool_calls = Convertor.convert_tool_calls_llama_to_openai(response_tool_calls)
+                message.content = chat_response["text"]
+        else:            
+            choice = chat_response["choices"][-1]
+            finish_reason = choice["finishReason"]
+            if "toolCalls" in choice["message"]:
+                response_tool_calls = choice["message"]["toolCalls"]
+            else:
+                response_tool_calls = None
+            if finish_reason == "tool_calls" or response_tool_calls:
+                oepnai_tool_calls = Convertor.convert_tool_calls_to_openai(response_tool_calls)
                 message.tool_calls = oepnai_tool_calls
                 message.content = None
             else:
-                message.content = chat_response.choices[0].message.content[0].text
+                message.content = choice["message"]["content"][0]["text"]
 
         response = ChatResponse(
             id = message_id,
@@ -481,8 +535,9 @@ class OCIGenAIModel(BaseChatModel):
         usage = None
         text = None
         openai_tool_calls = None
+        vendor = model_id.split(".")[0].lower()
         if "finishReason" not in chunk:
-            if model_id.startswith("cohere"):
+            if vendor == "cohere":
                 if "tooCalls" not in chunk:
                     text = chunk["text"]
                     message = ChatResponseMessage(
@@ -497,15 +552,11 @@ class OCIGenAIModel(BaseChatModel):
                         role="assistant",
                         tool_calls=openai_tool_calls
                         )
-            elif model_id.startswith("meta") or model_id.startswith("openai") or model_id.startswith("xai"):
-                if "content" in chunk["message"]:
-                    if chunk["message"]["content"]:
-                        text = chunk["message"]["content"][0]["text"]
-                    else:
-                        text = ""
-                elif "toolCalls" in chunk["message"]:
-                    text = ""
-                    openai_tool_calls = Convertor.convert_tool_calls_llama_to_openai(chunk["message"]["toolCalls"])
+            else:
+                if chunk.get("message", {}).get("content", [{}])[0].get("text"):
+                    text = chunk["message"]["content"][0]["text"]
+                if  chunk.get("message", {}).get("toolCalls"):
+                    openai_tool_calls = Convertor.convert_tool_calls_to_openai(chunk["message"]["toolCalls"])
                 message = ChatResponseMessage(
                     role="assistant",
                     content=text,
@@ -514,42 +565,37 @@ class OCIGenAIModel(BaseChatModel):
         elif "finishReason" in chunk:
             message = ChatResponseMessage(role="assistant")
             finish_reason = chunk["finishReason"]
-            if "toolCalls" in chunk:
-                openai_tool_calls = Convertor.convert_tool_calls_cohere_to_openai(chunk["toolCalls"])
+            if chunk.get("message", {}).get("toolCalls"):
+                openai_tool_calls = Convertor.convert_tool_calls_cohere_to_openai(chunk["message"]["toolCalls"])
                 message.tool_calls = openai_tool_calls
                 message.content = ""
 
-        if "metadata" in chunk:
+        if "usage" in chunk:
             # usage information in metadata.
-            metadata = chunk["metadata"]
-            if "usage" in metadata:
-                # token usage
-                return ChatStreamResponse(
-                    id=message_id,
-                    model=model_id,
-                    choices=[],
-                    usage=Usage(
-                        prompt_tokens=metadata["usage"]["inputTokens"],
-                        completion_tokens=metadata["usage"]["outputTokens"],
-                        total_tokens=metadata["usage"]["totalTokens"],
-                    ),
+            prompt_tokens = chunk["usage"]["promptTokens"]
+            total_tokens = chunk["usage"]["totalTokens"]
+            completion_tokens = total_tokens - prompt_tokens            
+            usage=Usage(
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                total_tokens=total_tokens
+            )
+        
+        return ChatStreamResponse(
+            id=message_id,
+            model=model_id,
+            choices=[
+                ChoiceDelta(
+                    index=0,
+                    delta=message,
+                    logprobs=None,
+                    finish_reason=self._convert_finish_reason(finish_reason),
                 )
-        if message:
-            return ChatStreamResponse(
-                id=message_id,
-                model=model_id,
-                choices=[
-                    ChoiceDelta(
-                        index=0,
-                        delta=message,
-                        logprobs=None,
-                        finish_reason=self._convert_finish_reason(finish_reason),
-                    )
-                ],
-                usage=usage,
-                )
+            ],
+            usage=usage,
+            )
 
-        return None
+        # return None
 
     def _parse_content_parts(
             self,

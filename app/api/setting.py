@@ -20,13 +20,11 @@ if AUTH_TYPE == "API_KEY":
         private_key_file_location=OCI_CONFIG['key_file'],
         pass_phrase=OCI_CONFIG['pass_phrase']
     )
-    CLIENT_KWARGS.update({'config': OCI_CONFIG})
-    CLIENT_KWARGS.update({'signer': signer})
 elif AUTH_TYPE == 'INSTANCE_PRINCIPAL':
     OCI_CONFIG = {}
     signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
-    CLIENT_KWARGS.update({'config': OCI_CONFIG})
-    CLIENT_KWARGS.update({'signer': signer})
+CLIENT_KWARGS.update({'config': OCI_CONFIG})
+CLIENT_KWARGS.update({'signer': signer})
 
 
 def parse_model_settings(yaml_file):
