@@ -20,7 +20,8 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 
 # Change log
 
-- 20260626: Now support **Grok models** from XAI on Oracle Cloud
+- 20250812： Support **token usage** for all chat models
+- 20250626: Now support **Grok models** from XAI on Oracle Cloud
 - 20250620: Made fixes and tests on the **dedicate endpoint**
 - 20250619: Support **OpenAI** models on OCI
 - 20250523: Fixed a series of major bugs in meta model function calls
