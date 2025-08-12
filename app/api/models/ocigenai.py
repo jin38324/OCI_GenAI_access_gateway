@@ -2,6 +2,7 @@ import base64
 import json
 import logging
 import re
+import copy
 import time
 from abc import ABC
 from typing import AsyncIterable, Iterable, Literal
@@ -113,12 +114,22 @@ class OCIGenAIModel(BaseChatModel):
     def _invoke_genai(self, chat_request: ChatRequest, stream=False):
         """Common logic for invoke OCI GenAI models"""
         if DEBUG:
-            logger.info("Raw request:\n" + chat_request.model_dump_json())
+            temp_chat_request = copy.deepcopy(chat_request)
+            for message in temp_chat_request.messages:
+                for c in message.content:
+                    if c.type == "image_url":
+                        c.image_url.url = c.image_url.url[:50] + "..."
+            logger.info("Raw request:\n" + temp_chat_request.model_dump_json())
 
         # convert OpenAI chat request to OCI Generative AI SDK request
         chat_detail = self._parse_request(chat_request)
         if DEBUG:
-            logger.info("OCI Generative AI request:\n" + json.dumps(json.loads(str(chat_detail)), ensure_ascii=False))
+            temp_chat_detail = copy.deepcopy(chat_detail)
+            for message in temp_chat_detail.chat_request.messages:
+                for c in message.content:
+                    if c.type == "IMAGE":
+                        c.image_url["url"] = c.image_url["url"][:50] + "..."
+            logger.info("OCI Generative AI request:\n" + json.dumps(json.loads(str(temp_chat_detail)), ensure_ascii=False))
         try:
             region = SUPPORTED_OCIGENAI_CHAT_MODELS[chat_request.model]["region"]
             # generative_ai_inference_client.base_client.config["region"] = region
@@ -463,7 +474,7 @@ class OCIGenAIModel(BaseChatModel):
                 meta_messages.append(meta_message)
             generic_chatRequest.messages = meta_messages
             chat_detail.chat_request = generic_chatRequest
-        print(chat_detail)
+        # print(chat_detail)
         return chat_detail
 
     def _create_response(
