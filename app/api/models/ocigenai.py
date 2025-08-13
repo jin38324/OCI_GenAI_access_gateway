@@ -716,20 +716,32 @@ class OCIGenAIEmbeddingsModel(BaseEmbeddingsModel, ABC):
         compartment_id = SUPPORTED_OCIGENAI_EMBEDDING_MODELS[model_id]["compartment_id"]
         region = SUPPORTED_OCIGENAI_EMBEDDING_MODELS[model_id]["region"]
         generative_ai_inference_client.base_client._endpoint = INFERENCE_ENDPOINT_TEMPLATE.replace("{region}", region)
-        body = {
-            "inputs": args["texts"],
-            "servingMode": {"servingType": "ON_DEMAND", "modelId": model_id},
-            "truncate": args["truncate"],
-            "compartmentId": compartment_id
-        }
-        if DEBUG:
+        embed_text_details = oci.generative_ai_inference.models.EmbedTextDetails(
+            compartment_id=compartment_id,
+            serving_mode=oci.generative_ai_inference.models.OnDemandServingMode(
+                serving_type="ON_DEMAND",
+                model_id=model_id,
+            ),
+            # truncate = "NONE",
+            inputs=args["texts"],
+        )
+        body = generative_ai_inference_client.base_client.sanitize_for_serialization(embed_text_details)
+        body = json.dumps(body)
+        if DEBUG: 
             logger.info("Invoke OCI GenAI Model: " + model_id)
-            logger.info("OCI GenAI request body: " + json.dumps(body))
+            logger.info("OCI GenAI request body: " + str(body))
         try:
-
-            embed_text_response = generative_ai_inference_client.embed_text(body)
+            embed_text_response = generative_ai_inference_client.base_client.call_api(
+                resource_path="/actions/embedText",
+                method="POST",
+                operation_name="embedText",
+                header_params={
+                    "accept": "application/json, text/event-stream",
+                    "content-type": "application/json"
+                },
+                body=body
+                )
             return embed_text_response
-
         except Exception as e:
             logger.error("Validation Error: " + str(e))
             raise HTTPException(status_code=400, detail=str(e))
@@ -739,7 +751,7 @@ class OCIGenAIEmbeddingsModel(BaseEmbeddingsModel, ABC):
             embeddings: list[float],
             model: str,
             input_tokens: int = 0,
-            output_tokens: int = 0,
+            total_tokens: int = 0,
             encoding_format: Literal["float", "base64"] = "float",
     ) -> EmbeddingsResponse:
         data = []
@@ -757,7 +769,7 @@ class OCIGenAIEmbeddingsModel(BaseEmbeddingsModel, ABC):
             model=model,
             usage=EmbeddingsUsage(
                 prompt_tokens=input_tokens,
-                total_tokens=input_tokens + output_tokens,
+                total_tokens=total_tokens,
             ),
         )
         if DEBUG:
@@ -800,13 +812,17 @@ class CohereEmbeddingsModel(OCIGenAIEmbeddingsModel):
         response = self._invoke_model(
             args=self._parse_args(embeddings_request), model_id=embeddings_request.model
         )
-        response_body = response.data
+        response_body = json.loads(response.data.text)
+        input_tokens = response_body["usage"]["promptTokens"]
+        total_tokens = response_body["usage"]["totalTokens"]
         if DEBUG:
-            logger.info("OCI GenAI response body: " + str(response_body)[:50])
+            logger.info("OCI GenAI response body: " + str(response_body)[:200])
 
         return self._create_response(
-            embeddings=response_body.embeddings,
-            model=response_body.model_id,
+            embeddings=response_body["embeddings"],
+            model=response_body["modelId"],
+            input_tokens=input_tokens,
+            total_tokens=total_tokens,
             encoding_format=embeddings_request.encoding_format,
         )
 
