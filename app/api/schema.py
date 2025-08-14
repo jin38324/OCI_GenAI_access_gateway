@@ -258,12 +258,13 @@ class Convertor:
         openai_tool_calls = []
         for call in tool_calls:
             name = call["name"]
+            id = call.get("id", name)
             if vendor == "cohere":
                 arguments = str(call["parameters"])
             else:
                 arguments = call["arguments"]
             openai_call = ToolCall(
-                id = name,
+                id = id,
                 type = "function",
                 function = ResponseFunction(
                     name = name,

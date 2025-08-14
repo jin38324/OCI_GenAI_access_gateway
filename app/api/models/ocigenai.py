@@ -127,14 +127,17 @@ class OCIGenAIModel(BaseChatModel):
         # convert OpenAI chat request to OCI Generative AI SDK request
         chat_detail = self._parse_request(chat_request)
         if DEBUG:
-            temp_chat_detail = copy.deepcopy(chat_detail)
-            for message in temp_chat_detail.chat_request.messages:
-                try:
-                    for c in message.content:                    
-                        if c.type == "IMAGE":
-                            c.image_url["url"] = c.image_url["url"][:50] + "..."
-                except:
-                    pass
+            temp_chat_detail = copy.deepcopy(chat_detail)  
+            try:                          
+                for message in temp_chat_detail.chat_request.messages:
+                    try:
+                        for c in message.content:                    
+                            if c.type == "IMAGE":
+                                c.image_url["url"] = c.image_url["url"][:50] + "..."
+                    except:
+                        pass
+            except Exception as e:
+                    logging.info("Warning:"+str(e))
             logger.info("OCI Generative AI request:\n" + json.dumps(json.loads(str(temp_chat_detail)), ensure_ascii=False))
         try:
             region = SUPPORTED_OCIGENAI_CHAT_MODELS[chat_request.model]["region"]
@@ -165,9 +168,9 @@ class OCIGenAIModel(BaseChatModel):
             if DEBUG and not chat_detail.chat_request.is_stream:
                 content = json.dumps(json.loads(response.data.content), ensure_ascii=False)
                 logger.info("OCI Generative AI response:\n" + content)
-        except oci.exceptions.ServiceError as e:
-            logger.error(f"[_invoke_genai] OCI ServiceError: Status Code: {e.status}. Message: {e.message}")
-            raise HTTPException(status_code=e.status, detail=e.message)        
+        #except oci.exceptions.ServiceError as e:
+        #    logger.error(f"[_invoke_genai] OCI ServiceError: Status Code: {e.status}. Message: {e.message}")
+        #    raise HTTPException(status_code=e.status, detail=e.message)        
         except Exception as e:
             logger.error(e)
             raise HTTPException(status_code=500, detail=str(e))
