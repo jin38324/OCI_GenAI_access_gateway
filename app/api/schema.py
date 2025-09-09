@@ -250,29 +250,37 @@ class Convertor:
         return llama_tools
     
     @staticmethod
-    def convert_tool_calls_to_openai(tool_calls, vendor=None) -> list[ToolCall]:
+    def convert_tool_calls_to_openai(tool_calls):
         """
-        Convert a list of Cohere tool calls into a list of OpenAI tool calls.        
-        Returns: list: List of OpenAI tool call dictionaries.
+        Accepts *streaming deltas* from OCI:
+          - Later chunks may omit 'name' and/or 'id' and include only 'arguments'.
+          - We must emit OpenAI-style delta objects with an integer 'index' on each item.
         """
-        openai_tool_calls = []
-        for call in tool_calls:
-            name = call["name"]
-            id = call.get("id", name)
-            if vendor == "cohere":
-                arguments = str(call["parameters"])
-            else:
-                arguments = call["arguments"]
-            openai_call = ToolCall(
-                id = id,
-                type = "function",
-                function = ResponseFunction(
-                    name = name,
-                    arguments = arguments
-                    )
-                )
-            openai_tool_calls.append(openai_call)
-        return openai_tool_calls
+        openai_calls = []
+        for i, call in enumerate(tool_calls):
+            call_type = call.get("type", "FUNCTION")
+            out = {
+                # Always provide a numeric index; OpenAI clients rely on this to stitch deltas.
+                "index": call.get("index", i),
+                "type": "function" if call_type in ("FUNCTION", "function") else call_type,
+            }
+            # id can be absent on later chunks
+            if "id" in call and call["id"] is not None:
+                out["id"] = call["id"]
+
+            func = {}
+            # name can be absent on later chunks
+            if "name" in call and call["name"] is not None:
+                func["name"] = call["name"]
+            # arguments frequently arrive as partial fragments; pass through as-is (string).
+            if "arguments" in call and call["arguments"] is not None:
+                func["arguments"] = call["arguments"]
+
+            if func:
+                out["function"] = func
+            openai_calls.append(out)
+        return openai_calls
+
 
         
     @staticmethod

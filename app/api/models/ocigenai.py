@@ -576,7 +576,9 @@ class OCIGenAIModel(BaseChatModel):
                 if chunk.get("message", {}).get("content", [{}])[0].get("text"):
                     text = chunk["message"]["content"][0]["text"]
                 if  chunk.get("message", {}).get("toolCalls"):
-                    openai_tool_calls = Convertor.convert_tool_calls_to_openai(chunk["message"]["toolCalls"])
+                    openai_tool_calls = Convertor.convert_tool_calls_to_openai(
+                        chunk.get("message", {}).get("toolCalls", []),
+                    )
                 message = ChatResponseMessage(
                     role="assistant",
                     content=text,
