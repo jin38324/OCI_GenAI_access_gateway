@@ -40,24 +40,14 @@ from openai.types.chat.chat_completion_function_message_param import ChatComplet
 from openai.types.chat.chat_completion_content_part_param import ChatCompletionContentPartParam
 from openai.types.chat.chat_completion_message_function_tool_call_param import ChatCompletionMessageFunctionToolCallParam
 
-class PatchedChatCompletionUserMessageParam(ChatCompletionUserMessageParam):
-    content: Union[str, List[ChatCompletionContentPartParam]]
 
-class PatchedChatCompletionAssistantMessageParam(ChatCompletionAssistantMessageParam):
-    tool_calls: List[ChatCompletionMessageFunctionToolCallParam]
 
-# replace the type in openai
-# ChatCompletionUserMessageParam = PatchedChatCompletionUserMessageParam
-# ChatCompletionAssistantMessageParam = PatchedChatCompletionAssistantMessageParam
+ChatCompletionAssistantMessageParam.__annotations__["tool_calls"] = Optional[List[ChatCompletionMessageFunctionToolCallParam]]
+setattr(ChatCompletionAssistantMessageParam, "tool_calls", None)
 
-ChatCompletionMessageParam: TypeAlias = Union[
-    ChatCompletionDeveloperMessageParam,
-    ChatCompletionSystemMessageParam,
-    PatchedChatCompletionUserMessageParam,
-    PatchedChatCompletionAssistantMessageParam,
-    ChatCompletionToolMessageParam,
-    ChatCompletionFunctionMessageParam,
-]
+ChatCompletionUserMessageParam.__annotations__["content"] = Union[str, List[ChatCompletionContentPartParam]]
+setattr(ChatCompletionUserMessageParam, "content", None)
+
 
 class ChatRequest(BaseModel):
     # compatibility with OCI       
