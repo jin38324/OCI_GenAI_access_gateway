@@ -1,54 +1,60 @@
-from typing import Annotated
+from typing import Annotated, Union
 
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Depends, Body, Request
 from fastapi.responses import StreamingResponse
 
 from api.auth import api_key_auth
-from api.models.ocigenai import OCIGenAIModel
-from api.models.ociodsc import OCIOdscModel
-from api.schema import ChatRequest, ChatResponse, ChatStreamResponse
-from api.setting import SUPPORTED_OCIGENAI_CHAT_MODELS, SUPPORTED_OCIODSC_CHAT_MODELS, DEFAULT_MODEL
+from api.models.oci_chat import OCIGenAIModel
+#from api.models.ociodsc import OCIOdscModel
+from openai.types.chat.chat_completion import ChatCompletion
+from openai.resources.chat.completions import CompletionsWithStreamingResponse
+from api.schema import ChatRequest #, ChatCompletion, CompletionsWithStreamingResponse
+from api.setting import SUPPORTED_OCIGENAI_CHAT_MODELS, SUPPORTED_OCIODSC_CHAT_MODELS
 
 router = APIRouter(
     prefix="/chat",
-    dependencies=[Depends(api_key_auth)],
-    # responses={404: {"description": "Not found"}},
+    dependencies=[Depends(api_key_auth)]
 )
 
 
-@router.post("/completions", response_model=ChatResponse | ChatStreamResponse, response_model_exclude_unset=True)
+@router.post(
+    "/completions", 
+    response_model=Union[ChatCompletion], 
+    response_model_exclude_unset=True
+    )
 async def chat_completions(
-        chat_request: Annotated[
-            ChatRequest,
-            Body(
-                examples=[
-                    {
-                        "model": "cohere.command-r-plus",
-                        "messages": [
-                            {"role": "system", "content": "You are a helpful assistant."},
-                            {"role": "user", "content": "Hello!"},
-                        ],
-                    }
-                ],
-            ),
-        ]
+    chat_request: Annotated[
+        ChatRequest,
+        Body(
+            examples=[
+                {
+                    "model": "xai.grok-4",
+                    "messages": [
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": "Hello!"},
+                    ],
+                }
+            ],
+        ),
+    ]
 ):
-    model_name = chat_request.model
-
-    if model_name is None:
-        chat_request.model = DEFAULT_MODEL
     try:
-        model_type = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]["type"]
+        model_type = SUPPORTED_OCIGENAI_CHAT_MODELS[chat_request.model]["type"]
     except:
-        model_type = SUPPORTED_OCIODSC_CHAT_MODELS[model_name]["type"]
+        raise HTTPException(status_code=400, detail="Unsupported model")
+    
+    # except:
+    #     model_type = SUPPORTED_OCIODSC_CHAT_MODELS[chat_request.model]["type"]
     # Exception will be raised if model not supported.
 
-    if model_type == "datascience":
-        model = OCIOdscModel()  # Data Science models
-    elif model_type == "ondemand":
-        model = OCIGenAIModel()  # GenAI service ondemand models
+    # if model_type == "datascience":
+    #     model = OCIOdscModel()  # Data Science models
+    # GenAI service ondemand models
+    if model_type == "ondemand":
+        model = OCIGenAIModel() 
+    # GenAI service dedicated models
     elif model_type == "dedicated":
-        model = OCIGenAIModel()  # GenAI service dedicated models
+        model = OCIGenAIModel()  
 
     model.validate(chat_request)
 

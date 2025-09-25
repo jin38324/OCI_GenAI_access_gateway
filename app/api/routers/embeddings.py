@@ -3,9 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Body
 
 from api.auth import api_key_auth
-from api.models.ocigenai import get_embeddings_model
+from api.models.oci_embed import get_embeddings_model
 from api.schema import EmbeddingsRequest, EmbeddingsResponse
-from api.setting import DEFAULT_EMBEDDING_MODEL
 
 router = APIRouter(
     prefix="/embeddings",
@@ -29,8 +28,7 @@ async def embeddings(
             ),
         ]
 ):
-    if embeddings_request.model is None:
-        embeddings_request.model = DEFAULT_EMBEDDING_MODEL
+
     # Exception will be raised if model not supported.
-    model = get_embeddings_model(embeddings_request.model)
+    model = get_embeddings_model(embeddings_request.get("model"))
     return model.embed(embeddings_request)

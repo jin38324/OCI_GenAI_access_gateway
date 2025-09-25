@@ -1,0 +1,202 @@
+import json
+import logging
+import copy
+
+from typing import AsyncIterable
+from fastapi import HTTPException
+
+from api.setting import (
+    DEBUG, 
+    CLIENT_KWARGS, 
+    INFERENCE_ENDPOINT_TEMPLATE,
+    SUPPORTED_OCIGENAI_CHAT_MODELS
+)
+
+from api.models.base import BaseChatModel
+from api.models.utils import logger
+from api.schema import ChatRequest
+
+from api.models.adapter.request_adapter import ChatRequestAdapter
+from api.models.adapter.response_adapter import ResponseAdapter
+
+from openai.types.chat.chat_completion import ChatCompletion
+
+from oci.generative_ai_inference import GenerativeAiInferenceClient
+from oci.generative_ai import GenerativeAiClient
+from oci.generative_ai_inference import models as oci_models
+
+class OCIGenAIModel(BaseChatModel):
+    # https://docs.oracle.com/en-us/iaas/Content/generative-ai/pretrained-models.htm
+    # https://docs.oracle.com/en-us/iaas/data-science/using/ai-quick-actions-model-deploy.htm
+
+    _supported_models = {}
+
+    for model in SUPPORTED_OCIGENAI_CHAT_MODELS:
+        model_setting = SUPPORTED_OCIGENAI_CHAT_MODELS[model]
+        _supported_models[model] = {
+            "system": model_setting.get('system', True),
+            "multimodal": model_setting.get('multimodal', False),
+            "tool_call": model_setting.get('tool_call', False),
+            "stream_tool_call": model_setting.get('stream_tool_call', False),
+        }
+
+    def __init__(self):
+        self.provider = ""
+        self.generative_ai_inference_client = GenerativeAiInferenceClient(**CLIENT_KWARGS)
+
+    def _is_tool_call_supported(self, model_id: str, stream: bool = False) -> bool:
+        feature = self._supported_models.get(model_id)
+        if not feature:
+            return False
+        return feature["stream_tool_call"] if stream else feature["tool_call"]
+
+    def _is_multimodal_supported(self, model_id: str) -> bool:
+        feature = self._supported_models.get(model_id)
+        if not feature:
+            return False
+        return feature["multimodal"]
+
+    def _is_system_prompt_supported(self, model_id: str) -> bool:
+        feature = self._supported_models.get(model_id)
+        if not feature:
+            return False
+        return feature["system"]
+
+
+
+    def list_models(self) -> list[str]:
+        try:
+            generative_ai_client = GenerativeAiClient(**CLIENT_KWARGS)
+            first_key = next(iter(SUPPORTED_OCIGENAI_CHAT_MODELS))
+            compartment_id = SUPPORTED_OCIGENAI_CHAT_MODELS[first_key]["compartment_id"]
+            list_models_response = generative_ai_client.list_models(
+                    compartment_id=compartment_id,
+                    capability=["TEXT_GENERATION"]
+                    )
+            # valid_models = [model.display_name for model in list_models_response.data.items]
+            logger.info("Successfully validated models")
+            return list(self._supported_models.keys())
+        except Exception as e:
+            logger.error(e)
+            raise HTTPException(status_code=500, detail=str(e))
+
+
+    def validate(self, chat_request: ChatRequest):
+        """Perform basic validation on requests"""
+        error = ""
+        # check if model is supported
+        if chat_request.model not in self._supported_models.keys():
+            error = f"Unsupported model {chat_request.model}, please use models API to get a list of supported models"
+
+        # check if tool call is supported
+        elif chat_request.tools and not self._is_tool_call_supported(chat_request.model, stream=chat_request.stream):
+            tool_call_info = "Tool call with streaming" if chat_request.stream else "Tool call"
+            error = f"{tool_call_info} is currently not supported by {chat_request.model}"
+
+        if error:
+            raise HTTPException(
+                status_code=400,
+                detail=error,
+            )
+
+    def _log_chat(self,chat_request):
+        def modify_msg(messages):            
+            for message in messages:                
+                try:
+                    if isinstance(message, dict):
+                        if isinstance(message["content"], list):
+                            for c in message["content"]:
+                                if c["type"] == "image_url":
+                                    c["image_url"]["url"] = c["image_url"]["url"][ :50] + "..."
+                    
+                    else:
+                        if not isinstance(message.content, str):
+                            for c in message.content:
+                                if c.type == "IMAGE":
+                                    c.image_url["url"] = c.image_url["url"][ :50] + "..."
+                except Exception as e:
+                    logging.info("Warning:"+str(e))
+                    print(message)  
+            return messages
+        try:
+            temp_chat_request = copy.deepcopy(chat_request)
+            if isinstance(temp_chat_request, ChatRequest):
+                # modify openai message
+                temp_chat_request.messages = modify_msg(temp_chat_request.messages)
+                return temp_chat_request.model_dump_json(indent=2)
+            elif isinstance(temp_chat_request.chat_request, oci_models.GenericChatRequest):
+                # modify oci generic message
+                temp_chat_request.chat_request.messages = modify_msg(temp_chat_request.chat_request.messages)
+                return str(temp_chat_request)
+            else:
+                return str(chat_request)
+        except Exception as e:
+            logging.info("Failed to convert log chat request:"+str(e))
+            return str(chat_request)
+        
+
+    def _invoke_genai(self, chat_request: ChatRequest, stream=False):
+        """Common logic for invoke OCI GenAI models"""
+        if DEBUG:
+            logger.info("Raw request:\n" + self._log_chat(chat_request))
+
+        # convert OpenAI chat request to OCI Generative AI SDK request
+        model_name = chat_request.model
+        model_info = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]
+        self.provider = model_info["provider"]
+        chat_detail = ChatRequestAdapter(model_info).to_oci(chat_request)
+        if DEBUG:
+            logger.info("OCI Generative AI request:\n" + self._log_chat(chat_detail))
+            
+        region = model_info["region"]
+        self.generative_ai_inference_client.base_client._endpoint = INFERENCE_ENDPOINT_TEMPLATE.replace("{region}", region)
+        response = self.generative_ai_inference_client.chat(chat_detail)
+        if DEBUG and not chat_detail.chat_request.is_stream:
+            info = str(response.data)
+            logger.info("OCI Generative AI response:\n" + info) 
+        return response
+
+    def chat(self, chat_request: ChatRequest) -> ChatCompletion:
+        """Default implementation for Chat API."""
+        response = self._invoke_genai(chat_request)
+        # message_id = self.generate_message_id()
+        message_id = response.request_id
+        model_id = chat_request.model
+        chat_response = ResponseAdapter(self.provider).to_openai(
+            model=model_id,
+            message_id=message_id,
+            response=response.data.chat_response
+            )
+        if DEBUG:
+            info = chat_response.model_dump_json(indent=2)
+            logger.info("Proxy response :" +info)
+        return chat_response
+
+    def chat_stream(self, chat_request: ChatRequest) -> AsyncIterable[bytes]:
+        """Default implementation for Chat Stream API"""
+        response = self._invoke_genai(chat_request)
+        if not response.data:
+            raise HTTPException(status_code=500, detail="OCI AI API returned empty response")
+
+        message_id = response.request_id
+        model_id = SUPPORTED_OCIGENAI_CHAT_MODELS[chat_request.model]["model_id"]
+        
+        for stream in response.data.events():
+            chunk = json.loads(stream.data)
+            if DEBUG:
+                logger.info("OCI response :" + str(chunk))
+            stream_response = ResponseAdapter(self.provider).to_openai_chunk(
+                message_id=message_id,
+                model=model_id,
+                chunk=chunk
+                )
+            if DEBUG:
+                logger.info("Proxy response :" + stream_response.model_dump_json())
+
+            yield self.stream_response_to_bytes(stream_response)
+
+        # return an [DONE] message at the end.
+        yield self.stream_response_to_bytes()
+
+
+

@@ -17,23 +17,24 @@ from fastapi import HTTPException
 
 from api.models.base import BaseChatModel
 from api.schema import (
-    # Chat
-    ChatResponse,
+#     # Chat
+     ChatResponse,
     ChatRequest,
-    Choice,
-    ChatResponseMessage,
-    Usage,
-    ChatStreamResponse,
-    ImageContent,
-    TextContent,
-    ToolCall,
-    ChoiceDelta,
-    UserMessage,
-    AssistantMessage,
-    ToolMessage,
-    Function,
-    ResponseFunction
-)
+#     Choice,
+#     ChatResponseMessage,
+#     Usage,
+     ChatStreamResponse,
+#     ImageContent,
+#     TextContent,
+#     ToolCall,
+#     ChoiceDelta,
+#     UserMessage,
+#     AssistantMessage,
+#     ToolMessage,
+#     Function,
+#     ResponseFunction
+ )
+from openai.types import *
 
 from api.setting import DEBUG
 

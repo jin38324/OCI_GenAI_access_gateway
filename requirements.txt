@@ -5,6 +5,7 @@ uvicorn>=0.29.0
 requests>=2.32.3
 numpy>=1.26.4
 oci==2.158.2
+openai==1.104.2
 sseclient-py
 pyyaml
-gunicorn==23.0.0
+gunicorn>=23.0.0
