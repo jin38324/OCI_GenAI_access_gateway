@@ -9,7 +9,9 @@ from api.setting import (
     DEBUG, 
     CLIENT_KWARGS, 
     INFERENCE_ENDPOINT_TEMPLATE,
-    SUPPORTED_OCIGENAI_CHAT_MODELS
+    SUPPORTED_OCIGENAI_CHAT_MODELS,
+    OCI_REGION,
+    OCI_COMPARTMENT
 )
 
 from api.models.base import BaseChatModel
@@ -25,57 +27,41 @@ from oci.generative_ai_inference import GenerativeAiInferenceClient
 from oci.generative_ai import GenerativeAiClient
 from oci.generative_ai_inference import models as oci_models
 
+
+
 class OCIGenAIModel(BaseChatModel):
     # https://docs.oracle.com/en-us/iaas/Content/generative-ai/pretrained-models.htm
     # https://docs.oracle.com/en-us/iaas/data-science/using/ai-quick-actions-model-deploy.htm
 
-    _supported_models = {}
-
-    for model in SUPPORTED_OCIGENAI_CHAT_MODELS:
-        model_setting = SUPPORTED_OCIGENAI_CHAT_MODELS[model]
-        _supported_models[model] = {
-            "system": model_setting.get('system', True),
-            "multimodal": model_setting.get('multimodal', False),
-            "tool_call": model_setting.get('tool_call', False),
-            "stream_tool_call": model_setting.get('stream_tool_call', False),
-        }
-
     def __init__(self):
         self.provider = ""
         self.generative_ai_inference_client = GenerativeAiInferenceClient(**CLIENT_KWARGS)
+        self.init_models()
 
-    def _is_tool_call_supported(self, model_id: str, stream: bool = False) -> bool:
-        feature = self._supported_models.get(model_id)
-        if not feature:
-            return False
-        return feature["stream_tool_call"] if stream else feature["tool_call"]
+    def init_models(self):
+        if not SUPPORTED_OCIGENAI_CHAT_MODELS:
+            list_models_response = self.list_models(retrive=True)
+            for model in list_models_response:
+                SUPPORTED_OCIGENAI_CHAT_MODELS[model.display_name] = {
+                    "model_id":model.display_name,
+                    "region": OCI_REGION,
+                    "compartment_id": OCI_COMPARTMENT,
+                    "type": "ondemand",
+                    "provider": model.display_name.split(".")[0] if "." in model.display_name else "UNKNOWN",
+                }
+            logger.info(f"Successfully get {len(SUPPORTED_OCIGENAI_CHAT_MODELS)} models")
 
-    def _is_multimodal_supported(self, model_id: str) -> bool:
-        feature = self._supported_models.get(model_id)
-        if not feature:
-            return False
-        return feature["multimodal"]
-
-    def _is_system_prompt_supported(self, model_id: str) -> bool:
-        feature = self._supported_models.get(model_id)
-        if not feature:
-            return False
-        return feature["system"]
-
-
-
-    def list_models(self) -> list[str]:
+    def list_models(self, retrive: bool = False) -> list:
         try:
-            generative_ai_client = GenerativeAiClient(**CLIENT_KWARGS)
-            first_key = next(iter(SUPPORTED_OCIGENAI_CHAT_MODELS))
-            compartment_id = SUPPORTED_OCIGENAI_CHAT_MODELS[first_key]["compartment_id"]
-            list_models_response = generative_ai_client.list_models(
-                    compartment_id=compartment_id,
-                    capability=["TEXT_GENERATION"]
-                    )
-            # valid_models = [model.display_name for model in list_models_response.data.items]
-            logger.info("Successfully validated models")
-            return list(self._supported_models.keys())
+            if retrive:
+                generative_ai_client = GenerativeAiClient(**CLIENT_KWARGS)
+                list_models_response = generative_ai_client.list_models(
+                        compartment_id=OCI_COMPARTMENT,
+                        capability=["CHAT"]
+                        )
+                return list_models_response.data.items
+            else:
+                return list(SUPPORTED_OCIGENAI_CHAT_MODELS.keys())
         except Exception as e:
             logger.error(e)
             raise HTTPException(status_code=500, detail=str(e))
@@ -85,13 +71,8 @@ class OCIGenAIModel(BaseChatModel):
         """Perform basic validation on requests"""
         error = ""
         # check if model is supported
-        if chat_request.model not in self._supported_models.keys():
+        if chat_request.model not in SUPPORTED_OCIGENAI_CHAT_MODELS.keys():
             error = f"Unsupported model {chat_request.model}, please use models API to get a list of supported models"
-
-        # check if tool call is supported
-        elif chat_request.tools and not self._is_tool_call_supported(chat_request.model, stream=chat_request.stream):
-            tool_call_info = "Tool call with streaming" if chat_request.stream else "Tool call"
-            error = f"{tool_call_info} is currently not supported by {chat_request.model}"
 
         if error:
             raise HTTPException(

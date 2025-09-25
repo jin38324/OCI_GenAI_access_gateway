@@ -20,6 +20,7 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 
 # Change log
 
+- 20250925: Add **Easy mode**, where you can use environment variables to set the models without `models.yaml`
 - 20250925: Support **OpenAI gpt-oss** models on OCI
 - 20250925: Refactored the code using OCI and OpenAI's SDK, built an Adapter system, and made the code more robust
 - 20250812：Support **token usage** for all chat models
@@ -43,7 +44,9 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 
 1. Clone this repository and [set prerequisites](#set-prerequisites);
 
-2. Run this app:
+2. Finish prerequisites, follow [Set Prerequisites](#Set Prerequisites)
+
+3. Run this app:
 
     ## Option 1: Launch on host
 
@@ -80,6 +83,10 @@ It's OK now!
 
 ![alt text](image/chat.png)
 
+# 
+
+
+
 
 # Set Prerequisites
 
@@ -107,21 +114,30 @@ xxxx is your dynamic-group that indicated your vm or other resources
 
 in `config.py`, set `AUTH_TYPE=INSTANCE_PRINCIPAL`
 
-## Other settings:
+## Setting models
 
-You can modify the `config.py` file to change default settings.
-- `PORT`: service http port
-- `RELOAD`: if True, the web service will reload if any file change in the project
-- `DEBUG`: if True, more logs will displayed
-- `DEFAULT_API_KEYS`: Authorize token for the API, default is `ocigenerativeai`
-- `API_ROUTE_PREFIX`: API url PREDIX
-- `AUTH_TYPE`: `API_KEY` or `INSTANCE_PRINCIPAL`
-- `OCI_CONFIG_FILE`: OCI config file location, default is `~/.oci/config`
-- `OCI_CONFIG_FILE_KEY`: multiple configs can be added in one config file, so you can use key to determain use which one
-- `INFERENCE_ENDPOINT_TEMPLATE`: no need to modify, unless the OCI service changes
+### Easy mode through Environment variables
+
+You can set environment variables to use the model.
+Below is minimal required environment variables, more settings can be found in [Other settings](#Other settings).
+
+On windows Powershell:
+```bash
+$env:OCI_REGION="us-chicago-1"
+$env:OCI_COMPARTMENT = "ocid1.compartment.oc1..aaaxxxxxx"
+```
+
+On linux:
+```bash
+export OCI_REGION="us-chicago-1"
+export OCI_COMPARTMENT = "ocid1.compartment.oc1..aaaxxxxxx"
+```
 
 
-# Models
+
+### Advance mode through models.py
+
+If you want to call models in different regions or compartments, you can modify the `models.yaml` file.
 
 Generative AI is a rapidly evolving field, with new models being added and old models being retired.
 So I abandoned hard-coding model information in the code and instead defined the model through `models.yaml`.
@@ -146,6 +162,22 @@ Model information parameters:
 - `model_id`: is the [standard model ID](https://docs.oracle.com/en-us/iaas/Content/generative-ai/pretrained-models.htm)
 - `endpoint`: Call endpoint, which can be viewed through the OCI console
 
+## Other settings:
+
+These settings has default values, you can modify the `config.py` file to change default settings.
+
+| Variable Name         | Description                                                       | Default Value       |
+|-----------------------|-------------------------------------------------------------------|---------------------|
+| OCI_CONFIG_FILE       | OCI config file location                                          | "~/.oci/config"       |
+| OCI_CONFIG_FILE_KEY   | multiple configs can be added in one config file, so you can use key to determain use which one | "DEFAULT" |
+| PORT                  | service http port                                                 | 8088                |
+| RELOAD                | if True, the web service will reload if any file change in the project | True                |
+| DEBUG                 | if True, more logs will displayed                                 | True                |
+| DEFAULT_API_KEYS      | Authorize token for the API                                       | ocigenerativeai     |
+| API_ROUTE_PREFIX      | API url PREDIX                                                    | "/v1"               |
+| AUTH_TYPE             | `API_KEY` or `INSTANCE_PRINCIPAL`                                 | "API_KEY"            |
+
+
 
 # Test the application
 
@@ -163,4 +195,4 @@ for model in models:
     print(model.id)
 ```
 
-More example please check the notebook [Endpoint test.ipynb](https://github.com/jin38324/OCI_GenAI_access_gateway/blob/main/endpoint_test.ipynb)
+More example please check the notebook [Endpoint test.ipynb](endpoint_test.ipynb)
