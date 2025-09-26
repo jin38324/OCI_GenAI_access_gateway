@@ -71,6 +71,12 @@ class ChatRequestAdapter:
             "parallel_tool_calls": "is_parallel_tool_calls",
         }
 
+        TOOL_CHOICE_MAPPER = {
+            "none": oci_models.ToolChoiceAuto(),
+            "auto": oci_models.ToolChoiceAuto(),
+            "required": oci_models.ToolChoiceRequired(),
+        }
+
         @staticmethod
         def to_generic(chat_request: ChatRequest, servingMode, compartment_id):
             inference_config = {}
@@ -97,7 +103,7 @@ class ChatRequestAdapter:
 
             # Tool choice / reasoning effort / verbosity
             if chat_request.tool_choice:
-                oci_chat_request.tool_choice = chat_request.tool_choice.upper()
+                oci_chat_request.tool_choice = ChatRequestAdapter.GenericAdapter.TOOL_CHOICE_MAPPER.get(chat_request.tool_choice)
             if chat_request.reasoning_effort:
                 oci_chat_request.reasoning_effort = chat_request.reasoning_effort.upper()
             if chat_request.verbosity:
