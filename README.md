@@ -42,9 +42,9 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 # Quick Start
 
 
-1. Clone this repository and [set prerequisites](#set-prerequisites);
+1. Clone this repository;
 
-2. Finish prerequisites, follow [Set Prerequisites](#Set Prerequisites)
+2. Finish prerequisites, follow [Set Prerequisites](#set-prerequisites) ；
 
 3. Run this app:
 
@@ -60,7 +60,7 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
     or use `gunicorn` to enable `parallel threads` (only support linux):
    
    ```bash
-   gunicorn app:app --workers 16 --worker-class uvicorn.workers.UvicornWorker --timeout 600 --bind 0.0.0.0:8088
+   gunicorn app:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --timeout 600 --bind 0.0.0.0:8088
    ```
 
     ## Option 2: Launch in docker
@@ -76,15 +76,13 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 			-n oci_genai_gateway
     ```
 
-4. Config your application like this:
+4. Config your application, set `API Key` and `Host`， like this:
+ (This is an example in Cherry Studio)
 ![alt text](image/setting.png)
 
 It's OK now!
 
 ![alt text](image/chat.png)
-
-# 
-
 
 
 
