@@ -77,12 +77,14 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
     ```
 
 4. Config your application, set `API Key` and `Host`， like this:
- (This is an example in Cherry Studio)
-![alt text](image/setting.png)
 
-It's OK now!
+    (This is an example in Cherry Studio)
+    
+    ![alt text](image/settings.png)
 
-![alt text](image/chat.png)
+    It's OK now!
+
+    ![alt text](image/chat.png)
 
 
 
