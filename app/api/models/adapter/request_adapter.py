@@ -175,10 +175,11 @@ class ChatRequestAdapter:
                     except Exception:
                         logging.warning("Unknown extra body key:" + k)
 
-            chat_history, cohere_message, cohere_tool_results = MessageAdapter.to_cohere(chat_request.messages)
+            chat_history, cohere_message, cohere_tool_results, preamble_override = MessageAdapter.to_cohere(chat_request.messages)
             oci_chat_request.message = cohere_message
             oci_chat_request.tool_results = cohere_tool_results
             oci_chat_request.chat_history = chat_history
+            oci_chat_request.preamble_override = preamble_override
 
             if chat_request.tools:
                 oci_chat_request.tools = ToolAdapter.ToolsDefinitionAdapter.to_cohere(chat_request.tools)
@@ -273,39 +274,42 @@ class MessageAdapter:
         """
         Convert OpenAI messages to Cohere messages.
         """
-        chatHistory,cohere_message,cohere_tool_results = None,"",None
+        chatHistory,cohere_message,cohere_tool_results,preamble_override = None,"",None,None
         history, last_message = messages[:-1], messages[-1]
         openai_tool_calls = {}
         if history:
             chatHistory = []
             for i,message in enumerate(history):
                 text = MessageAdapter.ContentAdapter.to_str(message["content"])
-                if message["role"] == "user":
-                    new_msg = oci_models.CohereUserMessage(message = text)             
-                elif message["role"] == "assistant":
-                    if message.get("tool_calls"):
-                        new_tool_calls, tool_info = ToolAdapter.ToolCallAdapter.to_cohere(message["tool_calls"])
-                        openai_tool_calls.update(tool_info)
-                        new_msg = oci_models.CohereChatBotMessage(
-                            message = text,
-                            tool_calls = new_tool_calls
-                            ) 
-                    else:
-                        new_msg = oci_models.CohereChatBotMessage(message = text)              
+                if message["role"] == "system":
+                    preamble_override = text
+                else:
+                    if message["role"] == "user":
+                        new_msg = oci_models.CohereUserMessage(message = text)             
+                    elif message["role"] == "assistant":
+                        if message.get("tool_calls"):
+                            new_tool_calls, tool_info = ToolAdapter.ToolCallAdapter.to_cohere(message["tool_calls"])
+                            openai_tool_calls.update(tool_info)
+                            new_msg = oci_models.CohereChatBotMessage(
+                                message = text,
+                                tool_calls = new_tool_calls
+                                ) 
+                        else:
+                            new_msg = oci_models.CohereChatBotMessage(message = text)              
 
-                elif message["role"] == "tool":
-                    new_tool_results = _request_message_openai_tool_result_to_cohere(openai_tool_calls, message)
-                    new_msg = oci_models.CohereToolMessage(
-                        tool_results = new_tool_results
-                    )                
-                chatHistory.append(new_msg)
+                    elif message["role"] == "tool":
+                        new_tool_results = _request_message_openai_tool_result_to_cohere(openai_tool_calls, message)
+                        new_msg = oci_models.CohereToolMessage(
+                            tool_results = new_tool_results
+                        )                
+                    chatHistory.append(new_msg)
         
-        if last_message["role"] in ("user","assistant","system"):
+        if last_message["role"] in ("user","assistant"):
             cohere_message = MessageAdapter.ContentAdapter.to_str(last_message["content"])
             
         elif last_message["role"] == "tool":
             cohere_tool_results = ToolAdapter.ToolResultAdapter.to_cohere(last_message.get("tool_call_id"),openai_tool_calls,last_message["content"])
-        return chatHistory,cohere_message,cohere_tool_results
+        return chatHistory,cohere_message,cohere_tool_results,preamble_override
 
 
     class ContentAdapter:

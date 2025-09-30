@@ -10,8 +10,9 @@ from api.schema import EmbeddingsRequest
 
 from oci.generative_ai_inference import models as oci_models
 from oci.generative_ai_inference import GenerativeAiInferenceClient
-from api.setting import DEBUG
+
 from api.setting import (
+    DEBUG,
     CLIENT_KWARGS, 
     INFERENCE_ENDPOINT_TEMPLATE, 
     SUPPORTED_OCIGENAI_EMBEDDING_MODELS

@@ -7,8 +7,11 @@ from abc import ABC
 from typing import AsyncIterable, Iterable, Literal
 
 import oci
-from api.setting import DEBUG
-from api.setting import CLIENT_KWARGS, SUPPORTED_OCIODSC_CHAT_MODELS
+from api.setting import (
+    DEBUG,
+    CLIENT_KWARGS,
+    SUPPORTED_OCIODSC_CHAT_MODELS
+)
 
 import requests, json
 import numpy as np
