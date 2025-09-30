@@ -298,7 +298,7 @@ class MessageAdapter:
                             new_msg = oci_models.CohereChatBotMessage(message = text)              
 
                     elif message["role"] == "tool":
-                        new_tool_results = _request_message_openai_tool_result_to_cohere(openai_tool_calls, message)
+                        new_tool_results = ToolAdapter.ToolResultAdapter.to_cohere(openai_tool_calls, message)
                         new_msg = oci_models.CohereToolMessage(
                             tool_results = new_tool_results
                         )                
