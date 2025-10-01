@@ -177,7 +177,11 @@ These settings has default values, you can modify the `config.py` file to change
 | API_ROUTE_PREFIX      | API url PREDIX                                                    | "/v1"               |
 | AUTH_TYPE             | `API_KEY` or `INSTANCE_PRINCIPAL`                                 | "API_KEY"            |
 
+# Deployment
 
+## Deploy the app on to OCI OKE 
+
+- [Refer here for more](deployments/readme.md)
 
 # Test the application
 

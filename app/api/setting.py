@@ -6,7 +6,7 @@ sys.path.append(parent_dir)
 
 from oci.config import from_file
 from oci.signer import Signer
-from oci.auth.signers import InstancePrincipalsSecurityTokenSigner
+from oci.auth.signers import InstancePrincipalsSecurityTokenSigner,get_resource_principals_signer
 from oci.retry import DEFAULT_RETRY_STRATEGY
 
 import config
@@ -37,6 +37,12 @@ if AUTH_TYPE=="API_KEY":
 elif AUTH_TYPE == 'INSTANCE_PRINCIPAL':
     OCI_CONFIG = {}
     signer = InstancePrincipalsSecurityTokenSigner()
+elif AUTH_TYPE == 'RESOURCE_PRINCIPAL':
+    OCI_CONFIG = {}
+    signer = get_resource_principals_signer()
+    
+CLIENT_KWARGS.update({'config': OCI_CONFIG})
+CLIENT_KWARGS.update({'signer': signer})
 CLIENT_KWARGS.update({'config': OCI_CONFIG})
 CLIENT_KWARGS.update({'signer': signer})
 
@@ -47,8 +53,8 @@ INFERENCE_ENDPOINT_TEMPLATE = "https://inference.generativeai.{region}.oci.oracl
 EMBED_TRUNCATE = os.environ.get("EMBED_TRUNCATE", "END")
 
 
-OCI_REGION = os.environ.get("OCI_REGION", None)
-OCI_COMPARTMENT = os.environ.get("OCI_COMPARTMENT", None)
+OCI_REGION = os.environ.get("OCI_REGION", config.REGION)
+OCI_COMPARTMENT = os.environ.get("OCI_COMPARTMENT", config.OCI_COMPARTMENT)
 
 if OCI_REGION and OCI_COMPARTMENT:
     SUPPORTED_OCIGENAI_EMBEDDING_MODELS = {}
@@ -108,8 +114,9 @@ print("-"*40)
 print(f"OCI_REGION: {OCI_REGION}")
 print(f"OCI_COMPARTMENT: {OCI_COMPARTMENT}")
 print(f"AUTH_TYPE: {AUTH_TYPE}")
-print(f"OCI_CONFIG_FILE: {OCI_CONFIG_FILE}")
-print(f"OCI_CONFIG_FILE_KEY: {OCI_CONFIG_FILE_KEY}")
+if AUTH_TYPE=="API_KEY":
+  print(f"OCI_CONFIG_FILE: {OCI_CONFIG_FILE}")
+  print(f"OCI_CONFIG_FILE_KEY: {OCI_CONFIG_FILE_KEY}")
 print("-"*40)
 print(f"PORT: {PORT}")
 print(f"RELOAD: {RELOAD}")
