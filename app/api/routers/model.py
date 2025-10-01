@@ -3,8 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Path
 
 from api.auth import api_key_auth
-from api.models.ocigenai import OCIGenAIModel
-from api.models.ociodsc import OCIOdscModel
+from api.models.oci_chat import OCIGenAIModel
+#from api.models.ociodsc import OCIOdscModel
 from api.schema import Models, Model
 
 router = APIRouter(
@@ -14,8 +14,8 @@ router = APIRouter(
 )
 
 chat_model = OCIGenAIModel()
-odsc_model = OCIOdscModel()
-all_models = chat_model.list_models() + odsc_model.list_models()
+#odsc_model = OCIOdscModel()
+all_models = chat_model.list_models() #+ odsc_model.list_models()
 
 
 async def validate_model_id(model_id: str):
@@ -25,9 +25,15 @@ async def validate_model_id(model_id: str):
 
 @router.get("", response_model=Models)
 async def list_models():
-    model_list = [
-        Model(id=model_id) for model_id in all_models
-    ]
+    model_list = []
+    for model_id in all_models:
+        model = Model(
+            object="model",
+            id=model_id,
+            created=0,
+            owned_by=""
+            )
+        model_list.append(model)
     return Models(data=model_list)
 
 

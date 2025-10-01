@@ -1,172 +1,98 @@
-import time
-from typing import Literal, Iterable
+from pydantic import BaseModel
+from typing import Optional, List, Literal, Dict, Iterable, Union
+from typing_extensions import TypeAlias
 
-from pydantic import BaseModel, Field
+from openai.types.shared_params.metadata import Metadata
+from openai.types.shared.reasoning_effort import ReasoningEffort
+from openai.types.chat import (
+    # ChatCompletionAudioParam,
+    ChatCompletionMessageParam,
+    ChatCompletionToolUnionParam,
+    ChatCompletionStreamOptionsParam,
+    ChatCompletionPredictionContentParam,
+    ChatCompletionToolChoiceOptionParam,
+    completion_create_params,    
+)
 
+from openai.types.chat.chat_completion import ChatCompletion as ChatResponse
+from openai.resources.chat.completions import CompletionsWithStreamingResponse as ChatStreamResponse
 
-class Model(BaseModel):
-    id: str
-    created: int = Field(default_factory=lambda: int(time.time()))
-    object: str | None = "model"
-    owned_by: str | None = "ocigenerativeai"
+from openai._types import SequenceNotStr
+from openai.types.embedding_create_params import EmbeddingCreateParams as EmbeddingsRequest
+from openai.types import CreateEmbeddingResponse as EmbeddingsResponse
+
+# from openai.resources.chat.completions import CompletionsWithStreamingResponse
+from openai.types import Model
 
 
 class Models(BaseModel):
     object: str | None = "list"
-    data: list[Model] = []
+    data: List[Model]
+
+from openai.types.chat.chat_completion_user_message_param import ChatCompletionUserMessageParam
+from openai.types.chat.chat_completion_assistant_message_param import ChatCompletionAssistantMessageParam
+from openai.types.chat.chat_completion_developer_message_param import ChatCompletionDeveloperMessageParam
+from openai.types.chat.chat_completion_system_message_param import ChatCompletionSystemMessageParam
+from openai.types.chat.chat_completion_tool_message_param import ChatCompletionToolMessageParam
+from openai.types.chat.chat_completion_function_message_param import ChatCompletionFunctionMessageParam
 
 
-class ResponseFunction(BaseModel):
-    name: str | None = None
-    arguments: str
+from openai.types.chat.chat_completion_content_part_param import ChatCompletionContentPartParam
+from openai.types.chat.chat_completion_message_function_tool_call_param import ChatCompletionMessageFunctionToolCallParam
 
 
-class ToolCall(BaseModel):
-    index: int | None = None
-    id: str | None = None
-    type: Literal["function"] = "function"
-    function: ResponseFunction
 
+ChatCompletionAssistantMessageParam.__annotations__["tool_calls"] = Optional[List[ChatCompletionMessageFunctionToolCallParam]]
+setattr(ChatCompletionAssistantMessageParam, "tool_calls", None)
 
-class TextContent(BaseModel):
-    type: Literal["text"] = "text"
-    text: str
-
-
-class ImageUrl(BaseModel):
-    url: str
-    detail: str | None = "auto"
-
-
-class ImageContent(BaseModel):
-    type: Literal["image_url"] = "image"
-    image_url: ImageUrl
-
-
-class SystemMessage(BaseModel):
-    name: str | None = None
-    role: Literal["system"] = "system"
-    content: str
-
-
-class UserMessage(BaseModel):
-    name: str | None = None
-    role: Literal["user"] = "user"
-    content: str | list[TextContent | ImageContent]
-
-
-class AssistantMessage(BaseModel):
-    name: str | None = None
-    role: Literal["assistant"] = "assistant"
-    content: str | None
-    tool_calls: list[ToolCall] | None = None
-
-
-class ToolMessage(BaseModel):
-    role: Literal["tool"] = "tool"
-    content: str
-    tool_call_id: str
-
-
-class Function(BaseModel):
-    name: str
-    description: str | None = None
-    parameters: object
-
-
-class Tool(BaseModel):
-    type: Literal["function"] = "function"
-    function: Function
-
-
-class StreamOptions(BaseModel):
-    include_usage: bool = True
+ChatCompletionUserMessageParam.__annotations__["content"] = Union[str, List[ChatCompletionContentPartParam]]
+setattr(ChatCompletionUserMessageParam, "content", None)
 
 
 class ChatRequest(BaseModel):
-    messages: list[SystemMessage | UserMessage | AssistantMessage | ToolMessage]
+    # compatibility with OCI       
+    frequency_penalty: Optional[float] = None
+    logit_bias: Optional[Dict[str, int]] = None
+    metadata: Optional[Metadata] = None
+    max_completion_tokens: Optional[int] = None
+    max_tokens: Optional[int] = None        
+    presence_penalty: Optional[float] = None    
+    seed: Optional[int] = None    
+    stop: Union[Optional[str], SequenceNotStr[str], None] = None   
+    temperature: Optional[float] = None    
+    top_p: Optional[float] = None    
+
+    # Need mapping
     model: str
-    frequency_penalty: float | None = Field(default=0.0, le=2.0, ge=-2.0)  # Not used
-    presence_penalty: float | None = Field(default=0.0, le=2.0, ge=-2.0)  # Not used
-    stream: bool | None = False
-    stream_options: StreamOptions | None = None
-    temperature: float | None = Field(default=1.0, le=2.0, ge=0.0)
-    top_p: float | None = Field(default=1.0, le=1.0, ge=0.0)
-    user: str | None = None  # Not used
-    max_tokens: int | None = 2048
-    n: int | None = 1  # Not used
-    tools: list[Tool] | None = None
-    tool_choice: str | object = "auto"
+    n: Optional[int] = None    
+    logprobs: Optional[bool] = None            
+    parallel_tool_calls: bool = False   
+    stream: Optional[Literal[False,True]] = False
 
 
-class Usage(BaseModel):
-    prompt_tokens: int
-    completion_tokens: int
-    total_tokens: int
+    # Support but NOT compatibility with OCI
+    messages: List[ChatCompletionMessageParam]
+    prediction: Optional[ChatCompletionPredictionContentParam] = None
+    reasoning_effort: Optional[ReasoningEffort] = None
+    response_format: Optional[completion_create_params.ResponseFormat] = None 
+    stream_options: Optional[ChatCompletionStreamOptionsParam] = None
+    tool_choice: Optional[ChatCompletionToolChoiceOptionParam] = None
+    tools: Optional[List[ChatCompletionToolUnionParam]] = None
+    verbosity: Optional[Literal["low", "medium", "high"]] = None
+    
+    # extra parameters
+    extra_body: Optional[Dict] = None
 
 
-class ChatResponseMessage(BaseModel):
-    # tool_calls
-    role: Literal["assistant"] | None = None
-    content: str | None = None
-    tool_calls: list[ToolCall] | None = None
+    ### NOT supported by OCI
+    # audio: Optional[ChatCompletionAudioParam] = None
+    # modalities: Optional[List[Literal["text", "audio"]]] = None 
+    # prompt_cache_key: Optional[str] = None    
+    # safety_identifier: Optional[str] = None    
+    # service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] = None    
+    # store: Optional[bool] = None   
+    # top_logprobs: Optional[int]    
+    # user: Optional[str]    
+    # web_search_options: Optional[completion_create_params.WebSearchOptions]
 
 
-class BaseChoice(BaseModel):
-    index: int | None = 0
-    finish_reason: str | None = None
-    logprobs: dict | None = None
-
-
-class Choice(BaseChoice):
-    message: ChatResponseMessage
-
-
-class ChoiceDelta(BaseChoice):
-    delta: ChatResponseMessage
-
-
-class BaseChatResponse(BaseModel):
-    # id: str = Field(default_factory=lambda: "chatcmpl-" + str(uuid.uuid4())[:8])
-    id: str
-    created: int = Field(default_factory=lambda: int(time.time()))
-    model: str
-    system_fingerprint: str = "fp"
-
-
-class ChatResponse(BaseChatResponse):
-    choices: list[Choice]
-    object: Literal["chat.completion"] = "chat.completion"
-    usage: Usage
-
-
-class ChatStreamResponse(BaseChatResponse):
-    choices: list[ChoiceDelta]
-    object: Literal["chat.completion.chunk"] = "chat.completion.chunk"
-    usage: Usage | None = None
-
-
-class EmbeddingsRequest(BaseModel):
-    input: str | list[str] | Iterable[int | Iterable[int]]
-    model: str
-    encoding_format: Literal["float", "base64"] = "float"
-    dimensions: int | None = None  # not used.
-    user: str | None = None  # not used.
-
-
-class Embedding(BaseModel):
-    object: Literal["embedding"] = "embedding"
-    embedding: list[float] | bytes
-    index: int
-
-
-class EmbeddingsUsage(BaseModel):
-    prompt_tokens: int
-    total_tokens: int
-
-
-class EmbeddingsResponse(BaseModel):
-    object: Literal["list"] = "list"
-    data: list[Embedding]
-    model: str
-    usage: EmbeddingsUsage

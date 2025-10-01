@@ -1,47 +1,199 @@
 - region: us-chicago-1
-  compartment_id: ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  compartment_id: ocid1.compartment.oc1........
   models:
     ondemand:
+
+    # Cohere Command Family
+      - name: cohere.command-latest
+        model_id: cohere.command-a-03-2025
+        tool_call: true
+        stream_tool_call: true
+        description: "Map the latest model id to cohere.command-latest"
+      
+      - name: cohere.command-a-03-2025
+        model_id: cohere.command-a-03-2025
+        tool_call: true
+        stream_tool_call: true
+
       - name: cohere.command-r-plus-08-2024
         model_id: cohere.command-r-plus-08-2024
-        description: "delivers roughly 50% higher throughput and 25% lower latencies as compared to the previous Command R+ version, while keeping the hardware footprint the same."
+        tool_call: true
+        stream_tool_call: true
 
       - name: cohere.command-r-08-2024
         model_id: cohere.command-r-08-2024
-        description: "delivers roughly 50% higher throughput and 25% lower latencies as compared to the previous Command R+ version, while keeping the hardware footprint the same."
+        tool_call: true
+        stream_tool_call: true
 
-      - name: cohere.command-r-plus
-        model_id: cohere.command-r-plus
-        description: "Chat models: Optimized for complex tasks, offers advanced language understanding, higher capacity, and more nuanced responses, and can maintain context from its long conversation history of 128,000 tokens. Also ideal for question-answering, sentiment analysis, and information retrieval."
+    # Meta Llama Family
+      - name: meta.llama-latest
+        model_id: meta.llama-4-maverick-17b-128e-instruct-fp8
+        tool_call: true
+        stream_tool_call: true
 
-      - name: cohere.command-r-16k
-        model_id: cohere.command-r-16k
-        description: "Optimized for conversational interaction and long context tasks. Ideal for text generation, summarization, translation, or text-based classification."
+      - name: meta.llama-4-maverick-17b-128e-instruct-fp8
+        model_id: meta.llama-4-maverick-17b-128e-instruct-fp8
+        tool_call: true
+        stream_tool_call: true
 
-
+      - name: meta.llama-4-scout-17b-16e-instruct
+        model_id: meta.llama-4-scout-17b-16e-instruct
+        tool_call: true
+        stream_tool_call: true
+        
       - name: meta.llama-3.3-70b-instruct
         model_id: meta.llama-3.3-70b-instruct
-        description: "Model has 70 billion parameters.Accepts text-only inputs and produces text-only outputs.Delivers better performance than both Llama 3.1 70B and Llama 3.2 90B for text tasks.Maximum prompt + response length 128,000 tokens for each run.For on-demand inferencing, the response length is capped at 4,000 tokens for each run."
+        tool_call: true
+        stream_tool_call: true
 
       - name: meta.llama-3.2-11b-vision-instruct
         model_id: meta.llama-3.2-11b-vision-instruct
-        description: "Model has 11 billion parameters.Dedicated mode only. (On-demand inferencing not available.) For dedicated inferencing, create a dedicated AI cluster and endpoint and host the model on the cluster.Context length 128,000 tokens.Maximum prompt + response length 128,000 tokens for each run.Multimodal support Input text and images and get a text output.English is the only supported language for the image plus text option.Multilingual option supported for the text only option."
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
 
       - name: meta.llama-3.2-90b-vision-instruct
         model_id: meta.llama-3.2-90b-vision-instruct
-        description: "Model has 90 billion parameters.Context length: 128,000 tokens.Maximum prompt + response length: 128,000 tokens for each run.For on-demand inferencing, the response length is capped at 4,000 tokens for each run.Multimodal support: Input text and images and get a text output.English is the only supported language for the image plus text option.Multilingual option supported for the text only option."
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
 
-      - name: meta.llama-3.1-70b-instruct
-        model_id: meta.llama-3.1-70b-instruct
-        description: "This 70 billion-parameter generation model is perfect for content creation, conversational AI, and enterprise applications."
+    # Grok Familly
+      - name: xai.grok-default
+        model_id: xai.grok-3
+        tool_call: true
+        stream_tool_call: true
+        multimodal: false
 
-      - name: meta.llama-3.1-405b-instruct
-        model_id: meta.llama-3.1-405b-instruct
-        description: "This 405 billion-parameter model is a high-performance option that offers speed and scalability."
+      - name: xai.grok-4
+        model_id: xai.grok-4
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
 
-      - name: meta.llama-3-70b-instruct
-        model_id: meta.llama-3-70b-instruct
-        description: "Model has 70 billion parameters.Maximum prompt + response length: 8,000 tokens for each run.Has a broad general knowledge, from generating ideas to refining text analysis and drafting written content, such as emails, blog posts, and descriptions."
+      - name: xai.grok-3
+        model_id: xai.grok-3
+        tool_call: true
+        stream_tool_call: true
+        multimodal: false
+
+      - name: xai.grok-3-fast
+        model_id: xai.grok-3-fast
+        tool_call: true
+        stream_tool_call: true
+        multimodal: false
+
+      - name: xai.grok-3-mini
+        model_id: xai.grok-3-mini
+        tool_call: true
+        stream_tool_call: true
+        multimodal: false
+
+      - name: xai.grok-3-mini-fast
+        model_id: xai.grok-3-mini-fast
+        tool_call: true
+        stream_tool_call: true
+        multimodal: false   
+
+
+    # OpenAI Family
+      - name: openai.gpt-4.1
+        model_id: openai.gpt-4.1
+        tool_call: true
+        stream_tool_call: true
+      - name: openai.gpt-4.1-2025-04-14
+        model_id: openai.gpt-4.1-2025-04-14
+        tool_call: true
+        stream_tool_call: true
+      - name: openai.gpt-4.1-mini
+        model_id: openai.gpt-4.1-mini
+        tool_call: true
+        stream_tool_call: true
+      - name: openai.gpt-4.1-mini-2025-04-14
+        model_id: openai.gpt-4.1-mini-2025-04-14
+        tool_call: true
+        stream_tool_call: true
+      - name: openai.gpt-4.1-nano
+        model_id: openai.gpt-4.1-nano
+        tool_call: true
+        stream_tool_call: true
+      - name: openai.gpt-4.1-nano-2025-04-14
+        model_id: openai.gpt-4.1-nano-2025-04-14
+        tool_call: true
+        stream_tool_call: true
+      - name: openai.gpt-4o
+        model_id: openai.gpt-4o
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
+      - name: openai.gpt-4o-2024-08-06
+        model_id: openai.gpt-4o-2024-08-06
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
+      - name: openai.gpt-4o-2024-11-20
+        model_id: openai.gpt-4o-2024-11-20
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
+      - name: openai.gpt-4o-mini
+        model_id: openai.gpt-4o-mini
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
+      - name: openai.gpt-4o-mini-2024-07-18
+        model_id: openai.gpt-4o-mini-2024-07-18
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
+      - name: openai.gpt-4o-mini-search-preview
+        model_id: openai.gpt-4o-mini-search-preview
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
+      - name: openai.gpt-4o-mini-search-preview-2025-03-11
+        model_id: openai.gpt-4o-mini-search-preview-2025-03-11
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
+      - name: openai.gpt-4o-search-preview
+        model_id: openai.gpt-4o-search-preview
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
+      - name: openai.gpt-4o-search-preview-2025-03-11
+        model_id: openai.gpt-4o-search-preview-2025-03-11
+        tool_call: true
+        stream_tool_call: true
+        multimodal: true
+      - name: openai.o1
+        model_id: openai.o1
+        tool_call: true
+        stream_tool_call: true
+      - name: openai.o1-2024-12-17
+        model_id: openai.o1-2024-12-17
+        tool_call: true
+        stream_tool_call: true
+      - name: openai.o3
+        model_id: openai.o3
+        tool_call: true
+        stream_tool_call: true
+      - name: openai.o3-2025-04-16
+        model_id: openai.o3-2025-04-16
+        tool_call: true
+        stream_tool_call: true
+      - name: openai.o3-mini
+        model_id: openai.o3-mini
+        tool_call: true
+        stream_tool_call: true
+      - name: openai.o3-mini-2025-01-31
+        model_id: openai.o3-mini-2025-01-31
+        tool_call: true
+        stream_tool_call: true
+      - name: openai.o4-mini
+        model_id: openai.o4-mini
+        tool_call: true
+        stream_tool_call: true
 
     embedding:
       - name: cohere.embed-multilingual-v3.0
@@ -69,8 +221,13 @@
         description: "A smaller, faster version of embed-multilingual-v3.0. Almost as capable, but a lot faster. Supports multiple languages."
 
     dedicated:
+      - name: sandbox_generativeaiendpointllama3_3
+        provider: meta
+        endpoint: ocid1.generativeaiendpoint.oc1.us-chicago-1................
+        description: "Sandbox dedicated model description"
+
       - name: my-dedicated-model-name
-        endpoint: https://ocid1.generativeaiendpoint....  # endpoint url for dedicated model
+        endpoint: ocid1.generativeaiendpoint.....  # endpoint ocid for dedicated model
         description: "my dedicated model description"
 
     datascience:
@@ -79,15 +236,18 @@
         description: "my dedicated model description"
 
 - region: us-ashburn-1
-  compartment_id: ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  compartment_id: ocid1.compartment.oc1............
   models:
     datascience:
       - name: ODSC-Mistral-7B-Instruct
-        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/predict
+        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad............/predict
         description: "Data science Model deployment for Mistral 7B Instruct model"
       - name: ODSC-DeepSeek-R1-Distill-Qwen-7B
-        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/predict
+        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad............/predict
         description: "Data science Model deployment for DeepSeek-R1-Distill-Qwen-7B model"
+      - name: ODSC-sql-coder-graph
+        endpoint: https://modeldeployment.us-ashburn-1.oci.customer-oci.com/ocid1.datasciencemodeldeployment.oc1.iad............/predict
+        
 
 # Modify this file to specify the call information of the model.
 # You can define 3 types of models:
