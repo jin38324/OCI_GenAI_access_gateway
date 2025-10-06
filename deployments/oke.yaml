@@ -20,6 +20,18 @@ spec:
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
+          resizePolicy:
+          - resourceName: cpu
+            restartPolicy: NotRequired # Default, but explicit here
+          - resourceName: memory
+            restartPolicy: RestartContainer
+          resources:
+            limits:
+              memory: "1024Mi"
+              cpu: "100m"
+            requests:
+              memory: "200Mi"
+              cpu: "70m"
           env:
             - name: DEFAULT_API_KEYS
               valueFrom:
@@ -45,3 +57,7 @@ spec:
       targetPort: 8088
   selector:
     app: oci-openaigateway-app
+  sessionAffinity: ClientIP # Enable IP-based session affinity
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 3600 # Optional: Set a timeout in seconds (default is 10800)
