@@ -57,7 +57,3 @@ spec:
       targetPort: 8088
   selector:
     app: oci-openaigateway-app
-  sessionAffinity: ClientIP # Enable IP-based session affinity
-  sessionAffinityConfig:
-    clientIP:
-      timeoutSeconds: 3600 # Optional: Set a timeout in seconds (default is 10800)

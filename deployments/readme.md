@@ -127,3 +127,7 @@ kubectl logs deployment.apps/oci-openaigateway-deployment -n <namespace name>
 http://<LBIP>/docs or http://<LBIP>/redoc
 ```
 
+### Additional references (Optional)
+
+- Use a side car container and add OCI Object storage bucket as a store to refere model.yaml - (Blog link)[https://blogs.oracle.com/linux/post/object-storage-buckets-and-oke]
+- Enable session persistance when using with OCI OKE and OCI Loadbalancer - (Blog link)[https://www.ateam-oracle.com/post/oci-load-balancer-session-persistence-know-how]
