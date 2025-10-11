@@ -57,8 +57,6 @@ elif AUTH_TYPE == 'RESOURCE_PRINCIPAL':
     
 CLIENT_KWARGS.update({'config': OCI_CONFIG})
 CLIENT_KWARGS.update({'signer': signer})
-CLIENT_KWARGS.update({'config': OCI_CONFIG})
-CLIENT_KWARGS.update({'signer': signer})
 CLIENT_KWARGS.update({'region': config.REGION})
 
 INFERENCE_ENDPOINT_TEMPLATE = "https://inference.generativeai.{region}.oci.oraclecloud.com/20231130"
