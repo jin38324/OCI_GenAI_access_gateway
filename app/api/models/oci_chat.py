@@ -54,6 +54,7 @@ class OCIGenAIModel(BaseChatModel):
     def list_models(self, retrive: bool = False) -> list:
         try:
             if retrive:
+                CLIENT_KWARGS.update({'service_endpoint':   f"https://generativeai.{CLIENT_KWARGS['region']}.oci.oraclecloud.com" })
                 generative_ai_client = GenerativeAiClient(**CLIENT_KWARGS)
                 list_models_response = generative_ai_client.list_models(
                         compartment_id=OCI_COMPARTMENT,

@@ -8,18 +8,32 @@ from oci.config import from_file
 from oci.signer import Signer
 from oci.auth.signers import InstancePrincipalsSecurityTokenSigner,get_resource_principals_signer
 from oci.retry import DEFAULT_RETRY_STRATEGY
+from oci.retry import RetryStrategyBuilder
 
 import config
-
+from oci.circuit_breaker import DEFAULT_CIRCUIT_BREAKER_STRATEGY
 PORT = os.environ.get("PORT", config.PORT)
 RELOAD = os.environ.get("RELOAD", config.RELOAD)
 DEBUG = os.environ.get("DEBUG", config.DEBUG)
 DEFAULT_API_KEYS = os.environ.get("DEFAULT_API_KEYS", config.DEFAULT_API_KEYS)
 API_ROUTE_PREFIX = os.environ.get("API_ROUTE_PREFIX", config.API_ROUTE_PREFIX)
 
+
+
+exponential_backoff_retry_strategy = RetryStrategyBuilder(
+    max_attempts=5,  # Initial call + 4 retries
+    total_elapsed_time_seconds=600,  # Max retry duration
+    retry_base_wait_time_seconds=1,  # Initial delay
+    retry_max_wait_between_calls_seconds=60,  # Max delay
+    should_retry_on=lambda response: response.status in [429, 500, 502, 503, 504]  # Retry on throttling/server errors
+).get_retry_strategy()
+
+
 CLIENT_KWARGS = {
-    "retry_strategy": DEFAULT_RETRY_STRATEGY,
-    "timeout": (10, 240),  # default timeout config for OCI Gen AI service
+    # "retry_strategy": DEFAULT_RETRY_STRATEGY,
+    "retry_strategy": exponential_backoff_retry_strategy,
+    "circuit_breaker_strategy": DEFAULT_CIRCUIT_BREAKER_STRATEGY,
+    # "timeout": (10, 240),  # default timeout config for OCI Gen AI service
 }
 
 AUTH_TYPE = os.environ.get("AUTH_TYPE", config.AUTH_TYPE)
@@ -45,6 +59,7 @@ CLIENT_KWARGS.update({'config': OCI_CONFIG})
 CLIENT_KWARGS.update({'signer': signer})
 CLIENT_KWARGS.update({'config': OCI_CONFIG})
 CLIENT_KWARGS.update({'signer': signer})
+CLIENT_KWARGS.update({'region': config.REGION})
 
 INFERENCE_ENDPOINT_TEMPLATE = "https://inference.generativeai.{region}.oci.oraclecloud.com/20231130"
 
