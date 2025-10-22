@@ -209,6 +209,15 @@ class ResponseFormatAdapter:
                     is_strict=response_format.json_schema.is_strict,
                 )
             )
+        elif isinstance(response_format, dict) and response_format.get('type') == 'json_schema':
+            return oci_models.JsonSchemaResponseFormat(
+                json_schema=oci_models.ResponseJsonSchema(
+                    name=response_format.get('json_schema', {}).get('name'),
+                    description=response_format.get('json_schema', {}).get('description'),
+                    schema=response_format.get('json_schema', {}).get('schema'),
+                    is_strict=response_format.get('json_schema', {}).get('strict', False),
+                )
+            )
         else:
             raise ValueError("Unknown response format type:" + str(response_format))
 
