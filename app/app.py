@@ -1,14 +1,22 @@
 import logging
 
 import uvicorn
+
+# from mangum import Mangum
+from api.routers import chat, embeddings, model
+from api.setting import (
+    API_ROUTE_PREFIX,
+    DESCRIPTION,
+    PORT,
+    RELOAD,
+    SUMMARY,
+    TITLE,
+    VERSION,
+)
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
-# from mangum import Mangum
-
-from api.routers import model, chat, embeddings
-from api.setting import API_ROUTE_PREFIX, TITLE, DESCRIPTION, SUMMARY, VERSION, PORT, RELOAD
 
 config = {
     "title": TITLE,

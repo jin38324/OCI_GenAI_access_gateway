@@ -3,7 +3,7 @@ from typing import Annotated
 
 # import boto3
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from api.setting import DEFAULT_API_KEYS
 
@@ -20,7 +20,7 @@ security = HTTPBearer()
 
 
 def api_key_auth(
-        credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
 ):
     if credentials.credentials != api_key:
         raise HTTPException(
