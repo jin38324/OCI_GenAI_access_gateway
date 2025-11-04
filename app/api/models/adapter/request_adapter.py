@@ -180,7 +180,12 @@ class ChatRequestAdapter:
             oci_chat_request.tool_results = cohere_tool_results
             oci_chat_request.chat_history = chat_history
             oci_chat_request.preamble_override = preamble_override
+            # Cohere max_token default is very low and chat fails if not set. (ex: with N8N)
+            # Cohere max token is 4000 in on-demand and fails if higher (ex: ElevenLab.io sets the max_token to 8192 per default.)
+            if not oci_chat_request.max_tokens or oci_chat_request.max_tokens>4000:
+                oci_chat_request.max_tokens = 4000
 
+            
             if chat_request.tools:
                 oci_chat_request.tools = ToolAdapter.ToolsDefinitionAdapter.to_cohere(chat_request.tools)
 
