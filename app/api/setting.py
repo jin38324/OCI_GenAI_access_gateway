@@ -7,8 +7,7 @@ sys.path.append(parent_dir)
 from oci.config import from_file
 from oci.signer import Signer
 from oci.auth.signers import InstancePrincipalsSecurityTokenSigner,get_resource_principals_signer
-from oci.retry import DEFAULT_RETRY_STRATEGY
-from oci.retry import RetryStrategyBuilder
+from oci.retry import DEFAULT_RETRY_STRATEGY, RetryStrategyBuilder
 
 import config
 from oci.circuit_breaker import DEFAULT_CIRCUIT_BREAKER_STRATEGY
