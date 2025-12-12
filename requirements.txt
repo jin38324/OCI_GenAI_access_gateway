@@ -4,8 +4,8 @@ uvicorn>=0.29.0
 # tiktoken>=0.6.0
 requests>=2.32.3
 numpy>=1.26.4
-oci>=2.160.2
-openai>=1.104.2
+oci==2.160.2
+openai==1.104.2
 sseclient-py
 pyyaml
 gunicorn>=23.0.0
