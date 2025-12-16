@@ -66,7 +66,7 @@ class ChatRequest(BaseModel):
     model: str
     n: Optional[int] = None    
     logprobs: Optional[bool] = None            
-    parallel_tool_calls: bool = False   
+    parallel_tool_calls: Optional[bool] = None  # False不行，会导致grok tool call 返回空值   
     stream: Optional[Literal[False,True]] = False
 
 
