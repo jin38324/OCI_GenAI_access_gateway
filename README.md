@@ -44,6 +44,21 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 
 # Quick Start
 
+1. Create OCI API Key, follow [Set authentication](#set-authentication) ,  note that the `key_file` parameter in the `.oci/config` needs to be located in the `/root/.oci/` directory, as this is the user folder for the Docker runtime environment；
+
+2. Run the following command, and it will download an image from GitHub and deploy it as a container. The environment variables `OCI_REGION` and `OCI_COMPARTMENT` should be configured according to the tenancy information.
+
+```sh
+docker run -p 8088:8088 \
+-v /root/.oci:/root/.oci \
+-e OCI_REGION="us-chicago-1" \
+-e OCI_COMPARTMENT="ocid1.compartment.oc1..xxxxxx" \
+-it ghcr.io/jin38324/oci-genai-access-gateway:v20251217 \
+-n oci-genai-access-gateway
+```
+
+
+# Run from source code
 
 1. Clone this repository;
 
