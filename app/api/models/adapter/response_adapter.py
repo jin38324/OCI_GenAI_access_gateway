@@ -94,20 +94,25 @@ class ResponseAdapter:
 
 class FinishReasonAdapter:
     _MAPPING = {
-        "tool_use": "tool_calls",
+        "TOOL_USE": "tool_calls",
         "COMPLETE": "stop",
         "ERROR_TOXIC": "content_filter",
         "ERROR_LIMIT": "stop",
         "ERROR": "stop",
         "USER_CANCEL": "stop",
-        "MAX_TOKENS": "length",
+        "MAX_TOKENS": "length"
     }
 
     @classmethod
     def to_openai(cls, finish_reason) -> Literal["stop", "length", "tool_calls", "content_filter", "function_call"] | None:
         if not finish_reason:
             return None
-        return cls._MAPPING.get(finish_reason, finish_reason)
+        if cls._MAPPING.get(finish_reason):
+            return cls._MAPPING.get(finish_reason)
+        elif cls._MAPPING.get(finish_reason.upper()):
+            return cls._MAPPING.get(finish_reason.upper())
+        else:
+            return None
 
 class MessageAdapter:
     """Convert different provider messages into OpenAI ChatCompletionMessage"""
@@ -222,9 +227,9 @@ class UsageAdapter:
             
 
         return CompletionUsage(
-            completion_tokens=usage_dict.get("completionTokens"),
-            prompt_tokens=usage_dict.get("promptTokens"),
-            total_tokens=usage_dict.get("totalTokens"),
+            completion_tokens=usage_dict.get("completionTokens",-1),
+            prompt_tokens=usage_dict.get("promptTokens",-1),
+            total_tokens=usage_dict.get("totalTokens",-1),
             completion_tokens_details=completion_tokens_details,
             prompt_tokens_details=prompt_tokens_details
         )
