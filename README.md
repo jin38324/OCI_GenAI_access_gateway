@@ -20,6 +20,8 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 
 # Change log
 
+- 20251223: Now support imported models, see [oracle doc](https://docs.oracle.com/en-us/iaas/Content/generative-ai/imported-models.htm)
+- 20251223: Use OpenAI compatible endpoint `/20231130/actions/v1/chat/completions` for meta and xai models
 - 20251209: Now support **Gemini** models from Google
 - 20251011: Add circuit breaker and exponential backoff. Thanks [@munger1985](https://github.com/jin38324/OCI_GenAI_access_gateway/pull/26)
 - 20251009: Deploy the app on to OCI OKE, [Refer here for more](deployments/readme.md). Thanks [@RahulMR42](https://github.com/jin38324/OCI_GenAI_access_gateway/pull/25)
