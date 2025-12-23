@@ -17,7 +17,7 @@ from api.setting import (
 )
 
 from api.models.base import BaseChatModel
-from api.models.utils import logger, filter_dict_list
+from api.models.utils import logger
 from api.schema import ChatRequest
 
 from api.models.adapter.request_adapter import ChatRequestAdapter
@@ -40,17 +40,40 @@ class OCIGenAIModel(BaseChatModel):
         self.init_models()
 
     def init_models(self):
+        def capability_filter(capabilities):
+            if "CHAT" in capabilities \
+                or "TEXT_GENERATION" in capabilities \
+                or "TEXT_TO_TEXT" in capabilities:
+                return True
+            else:
+                return False
+
         if not SUPPORTED_OCIGENAI_CHAT_MODELS:
-            list_models_response = self.list_models(retrive=True)
+            list_models_response, list_imported_models_response, list_endpoints_response = self.list_models(retrive=True)
             for model in list_models_response:
-                if "CHAT" in model.capabilities or "TEXT_GENERATION" in model.capabilities:
+                if capability_filter(model.capabilities):
+                    provider = model.display_name.split(".")[0] if "." in model.display_name else "UNKNOWN"
                     SUPPORTED_OCIGENAI_CHAT_MODELS[model.display_name] = {
+                        "type":"ondemand",
                         "model_id":model.display_name,
+                        "provider":provider,
                         "region": OCI_REGION,
                         "compartment_id": OCI_COMPARTMENT,
-                        "type": "ondemand",
-                        "provider": model.display_name.split(".")[0] if "." in model.display_name else "UNKNOWN",
                     }
+            if list_imported_models_response:
+                for model in list_imported_models_response:
+                    if capability_filter(model.capabilities):
+                        for item in list_endpoints_response:
+                            if item.model_id==model.id:
+                                SUPPORTED_OCIGENAI_CHAT_MODELS[model.display_name] = {                                    
+                                    "type": "dedicated",
+                                    "model_id": model.display_name,
+                                    "provider": "generic",
+                                    "endpoint": item.id,
+                                    "region": OCI_REGION,
+                                    "compartment_id": OCI_COMPARTMENT,
+                                }
+
             logger.info(f"Successfully get {len(SUPPORTED_OCIGENAI_CHAT_MODELS)} models")
 
     def list_models(self, retrive: bool = False) -> list:
@@ -58,12 +81,23 @@ class OCIGenAIModel(BaseChatModel):
             if retrive:
                 CLIENT_KWARGS.update({'service_endpoint':   f"https://generativeai.{CLIENT_KWARGS['region']}.oci.oraclecloud.com" })
                 generative_ai_client = GenerativeAiClient(**CLIENT_KWARGS)
+                # get ondemand models
                 list_models_response = generative_ai_client.list_models(
-                        compartment_id=OCI_COMPARTMENT,
-                        lifecycle_state = "ACTIVE"
-                        # capability=['TEXT_TO_TEXT'] # must be one of ['TEXT_TO_TEXT', 'IMAGE_TEXT_TO_TEXT', 'EMBEDDING', 'RERANK']
-                        )
-                return list_models_response.data.items
+                    compartment_id=OCI_COMPARTMENT,
+                    lifecycle_state = "ACTIVE"
+                )
+                # get imported models
+                list_imported_models_response = generative_ai_client.list_imported_models(
+                    compartment_id=OCI_COMPARTMENT,
+                    lifecycle_state = "ACTIVE"
+                )
+                # get imported model endpoints    
+                list_endpoints_response = generative_ai_client.list_endpoints(
+                    compartment_id=OCI_COMPARTMENT,    
+                    lifecycle_state = "ACTIVE"
+                )
+
+                return list_models_response.data.items, list_imported_models_response.data.items, list_endpoints_response.data.items
             else:
                 return list(SUPPORTED_OCIGENAI_CHAT_MODELS.keys())
         except Exception as e:
