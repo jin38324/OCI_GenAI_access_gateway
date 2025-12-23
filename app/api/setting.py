@@ -9,8 +9,6 @@ from oci.signer import Signer
 from oci.auth.signers import InstancePrincipalsSecurityTokenSigner,get_resource_principals_signer
 from oci.retry import DEFAULT_RETRY_STRATEGY, RetryStrategyBuilder
 
-from oci_openai import OciUserPrincipalAuth
-
 import config
 from oci.circuit_breaker import DEFAULT_CIRCUIT_BREAKER_STRATEGY
 
@@ -50,13 +48,6 @@ if AUTH_TYPE=="API_KEY":
         private_key_file_location=OCI_CONFIG['key_file'],
         pass_phrase=OCI_CONFIG['pass_phrase']
     )
-
-    
-    OCI_USER_PRINCIPAL_AUTH = OciUserPrincipalAuth(
-        config_file = OCI_CONFIG_FILE,
-        profile_name = OCI_CONFIG_FILE_KEY
-    )
-
 elif AUTH_TYPE == 'INSTANCE_PRINCIPAL':
     OCI_CONFIG = {}
     signer = InstancePrincipalsSecurityTokenSigner()
