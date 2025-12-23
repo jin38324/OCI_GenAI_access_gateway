@@ -9,8 +9,11 @@ from oci.signer import Signer
 from oci.auth.signers import InstancePrincipalsSecurityTokenSigner,get_resource_principals_signer
 from oci.retry import DEFAULT_RETRY_STRATEGY, RetryStrategyBuilder
 
+from oci_openai import OciUserPrincipalAuth
+
 import config
 from oci.circuit_breaker import DEFAULT_CIRCUIT_BREAKER_STRATEGY
+
 PORT = os.environ.get("PORT", config.PORT)
 RELOAD = os.environ.get("RELOAD", config.RELOAD)
 DEBUG = os.environ.get("DEBUG", config.DEBUG)
@@ -47,6 +50,13 @@ if AUTH_TYPE=="API_KEY":
         private_key_file_location=OCI_CONFIG['key_file'],
         pass_phrase=OCI_CONFIG['pass_phrase']
     )
+
+    
+    OCI_USER_PRINCIPAL_AUTH = OciUserPrincipalAuth(
+        config_file = OCI_CONFIG_FILE,
+        profile_name = OCI_CONFIG_FILE_KEY
+    )
+
 elif AUTH_TYPE == 'INSTANCE_PRINCIPAL':
     OCI_CONFIG = {}
     signer = InstancePrincipalsSecurityTokenSigner()
@@ -59,7 +69,7 @@ CLIENT_KWARGS.update({'signer': signer})
 CLIENT_KWARGS.update({'region': config.REGION})
 
 INFERENCE_ENDPOINT_TEMPLATE = "https://inference.generativeai.{region}.oci.oraclecloud.com/20231130"
-
+INFERENCE_ENDPOINT_TEMPLATE_OPENAI = "https://inference.generativeai.{region}.oci.oraclecloud.com/20231130/actions/v1/chat/completions"
 
 # One of NONE|START|END to specify how the API will handle inputs longer than the maximum token length.
 EMBED_TRUNCATE = os.environ.get("EMBED_TRUNCATE", "END")
@@ -68,6 +78,7 @@ EMBED_TRUNCATE = os.environ.get("EMBED_TRUNCATE", "END")
 OCI_REGION = os.environ.get("OCI_REGION", config.REGION)
 OCI_COMPARTMENT = os.environ.get("OCI_COMPARTMENT", config.OCI_COMPARTMENT)
 
+# If env is setting, infos will get from API
 if OCI_REGION and OCI_COMPARTMENT:
     SUPPORTED_OCIGENAI_EMBEDDING_MODELS = {}
     SUPPORTED_OCIGENAI_CHAT_MODELS = {}
@@ -121,18 +132,19 @@ Use OpenAI-Compatible RESTful APIs for OCI Generative AI Service models and OCI 
 Please edit "models.yaml" to specify your models and their call endpoints.
 """
 
-print(f"Server start variables: ")
-print("-"*40)
-print(f"OCI_REGION: {OCI_REGION}")
-print(f"OCI_COMPARTMENT: {OCI_COMPARTMENT}")
-print(f"AUTH_TYPE: {AUTH_TYPE}")
-if AUTH_TYPE=="API_KEY":
-  print(f"OCI_CONFIG_FILE: {OCI_CONFIG_FILE}")
-  print(f"OCI_CONFIG_FILE_KEY: {OCI_CONFIG_FILE_KEY}")
-print("-"*40)
-print(f"PORT: {PORT}")
-print(f"RELOAD: {RELOAD}")
-print(f"DEBUG: {DEBUG}")
-print(f"DEFAULT_API_KEYS: {DEFAULT_API_KEYS}")
-print(f"API_ROUTE_PREFIX: {API_ROUTE_PREFIX}")
-print("-"*40)
+def start_info():
+    print(f"Server start variables: ")
+    print("-"*40)
+    print(f"OCI_REGION: {OCI_REGION}")
+    print(f"OCI_COMPARTMENT: {OCI_COMPARTMENT}")
+    print(f"AUTH_TYPE: {AUTH_TYPE}")
+    if AUTH_TYPE=="API_KEY":
+        print(f"OCI_CONFIG_FILE: {OCI_CONFIG_FILE}")
+        print(f"OCI_CONFIG_FILE_KEY: {OCI_CONFIG_FILE_KEY}")
+    print("-"*40)
+    print(f"PORT: {PORT}")
+    print(f"RELOAD: {RELOAD}")
+    print(f"DEBUG: {DEBUG}")
+    print(f"DEFAULT_API_KEYS: {DEFAULT_API_KEYS}")
+    print(f"API_ROUTE_PREFIX: {API_ROUTE_PREFIX}")
+    print("-"*40)

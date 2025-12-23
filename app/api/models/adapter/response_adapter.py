@@ -112,7 +112,7 @@ class FinishReasonAdapter:
         elif cls._MAPPING.get(finish_reason.upper()):
             return cls._MAPPING.get(finish_reason.upper())
         else:
-            return None
+            return finish_reason
 
 class MessageAdapter:
     """Convert different provider messages into OpenAI ChatCompletionMessage"""

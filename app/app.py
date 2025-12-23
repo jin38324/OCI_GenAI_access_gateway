@@ -8,7 +8,7 @@ from fastapi.responses import PlainTextResponse
 # from mangum import Mangum
 
 from api.routers import model, chat, embeddings
-from api.setting import API_ROUTE_PREFIX, TITLE, DESCRIPTION, SUMMARY, VERSION, PORT, RELOAD
+from api.setting import API_ROUTE_PREFIX, TITLE, DESCRIPTION, SUMMARY, VERSION, PORT, RELOAD, start_info
 
 config = {
     "title": TITLE,
@@ -50,4 +50,5 @@ async def validation_exception_handler(request, exc):
 # handler = Mangum(app)
 
 if __name__ == "__main__":
+    start_info()
     uvicorn.run("app:app", host="0.0.0.0", port=PORT, reload=RELOAD)

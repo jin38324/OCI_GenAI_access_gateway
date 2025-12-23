@@ -1,5 +1,5 @@
 PORT = 8088
-RELOAD = True
+RELOAD = False
 DEBUG = True
 DEFAULT_API_KEYS = "ocigenerativeai"
 API_ROUTE_PREFIX = "/v1"

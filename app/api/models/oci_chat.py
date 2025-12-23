@@ -4,18 +4,20 @@ import copy
 
 from typing import AsyncIterable
 from fastapi import HTTPException
+import requests
 
 from api.setting import (
     DEBUG, 
     CLIENT_KWARGS, 
     INFERENCE_ENDPOINT_TEMPLATE,
+    INFERENCE_ENDPOINT_TEMPLATE_OPENAI,
     SUPPORTED_OCIGENAI_CHAT_MODELS,
     OCI_REGION,
     OCI_COMPARTMENT
 )
 
 from api.models.base import BaseChatModel
-from api.models.utils import logger
+from api.models.utils import logger, filter_dict_list
 from api.schema import ChatRequest
 
 from api.models.adapter.request_adapter import ChatRequestAdapter
@@ -26,7 +28,6 @@ from openai.types.chat.chat_completion import ChatCompletion
 from oci.generative_ai_inference import GenerativeAiInferenceClient
 from oci.generative_ai import GenerativeAiClient
 from oci.generative_ai_inference import models as oci_models
-
 
 
 class OCIGenAIModel(BaseChatModel):
@@ -42,13 +43,14 @@ class OCIGenAIModel(BaseChatModel):
         if not SUPPORTED_OCIGENAI_CHAT_MODELS:
             list_models_response = self.list_models(retrive=True)
             for model in list_models_response:
-                SUPPORTED_OCIGENAI_CHAT_MODELS[model.display_name] = {
-                    "model_id":model.display_name,
-                    "region": OCI_REGION,
-                    "compartment_id": OCI_COMPARTMENT,
-                    "type": "ondemand",
-                    "provider": model.display_name.split(".")[0] if "." in model.display_name else "UNKNOWN",
-                }
+                if "CHAT" in model.capabilities or "TEXT_GENERATION" in model.capabilities:
+                    SUPPORTED_OCIGENAI_CHAT_MODELS[model.display_name] = {
+                        "model_id":model.display_name,
+                        "region": OCI_REGION,
+                        "compartment_id": OCI_COMPARTMENT,
+                        "type": "ondemand",
+                        "provider": model.display_name.split(".")[0] if "." in model.display_name else "UNKNOWN",
+                    }
             logger.info(f"Successfully get {len(SUPPORTED_OCIGENAI_CHAT_MODELS)} models")
 
     def list_models(self, retrive: bool = False) -> list:
@@ -58,7 +60,8 @@ class OCIGenAIModel(BaseChatModel):
                 generative_ai_client = GenerativeAiClient(**CLIENT_KWARGS)
                 list_models_response = generative_ai_client.list_models(
                         compartment_id=OCI_COMPARTMENT,
-                        capability=["CHAT"]
+                        lifecycle_state = "ACTIVE"
+                        # capability=['TEXT_TO_TEXT'] # must be one of ['TEXT_TO_TEXT', 'IMAGE_TEXT_TO_TEXT', 'EMBEDDING', 'RERANK']
                         )
                 return list_models_response.data.items
             else:
@@ -122,63 +125,88 @@ class OCIGenAIModel(BaseChatModel):
         if DEBUG:
             logger.info("Raw request:\n" + self._log_chat(chat_request))
 
-        # convert OpenAI chat request to OCI Generative AI SDK request
+        
         model_name = chat_request.model
-        model_info = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]
-        self.provider = model_info["provider"]
-        chat_detail = ChatRequestAdapter(model_info).to_oci(chat_request)
-        if DEBUG:
-            logger.info("OCI Generative AI request:\n" + self._log_chat(chat_detail))
-            
+        model_info = SUPPORTED_OCIGENAI_CHAT_MODELS[model_name]        
         region = model_info["region"]
-        self.generative_ai_inference_client.base_client._endpoint = INFERENCE_ENDPOINT_TEMPLATE.replace("{region}", region)
-        response = self.generative_ai_inference_client.chat(chat_detail)
-        if DEBUG and not chat_detail.chat_request.is_stream:
-            info = str(response.data)
-            logger.info("OCI Generative AI response:\n" + info) 
-        return response
+        self.provider = model_info["provider"]
+
+        # use openai compatitble API
+        if self.provider in ["meta","xai"]:
+            response = requests.post(
+                url = INFERENCE_ENDPOINT_TEMPLATE_OPENAI.replace("{region}", region),
+                auth=CLIENT_KWARGS["signer"],
+                data= json.dumps(chat_request.model_dump()),
+                headers={
+                    "content-type": "application/json",
+                    "CompartmentId": OCI_COMPARTMENT
+                }
+            )
+            return response
+
+        # use generic API
+        else:
+            # convert OpenAI chat request to OCI Generative AI SDK request
+            chat_detail = ChatRequestAdapter(model_info).to_oci(chat_request)
+            if DEBUG:
+                logger.info("OCI Generative AI request:\n" + self._log_chat(chat_detail))                
+            
+            self.generative_ai_inference_client.base_client._endpoint = INFERENCE_ENDPOINT_TEMPLATE.replace("{region}", region)
+            response = self.generative_ai_inference_client.chat(chat_detail)
+            if DEBUG and not chat_detail.chat_request.is_stream:
+                info = str(response.data)
+                logger.info("OCI Generative AI response:\n" + info) 
+            return response
 
     def chat(self, chat_request: ChatRequest) -> ChatCompletion:
         """Default implementation for Chat API."""
         response = self._invoke_genai(chat_request)
-        # message_id = self.generate_message_id()
-        message_id = response.request_id
-        model_id = chat_request.model
-        chat_response = ResponseAdapter(self.provider).to_openai(
-            model=model_id,
-            message_id=message_id,
-            response=response.data.chat_response
-            )
-        if DEBUG:
+
+        if self.provider in ["meta","xai"]:
+            chat_response = json.loads(response.text)
+            info = json.dumps(chat_response, indent=2, ensure_ascii=False)
+        else:            
+            # message_id = self.generate_message_id()
+            message_id = response.request_id
+            model_id = chat_request.model
+            chat_response = ResponseAdapter(self.provider).to_openai(
+                model=model_id,
+                message_id=message_id,
+                response=response.data.chat_response
+                )            
             info = chat_response.model_dump_json(indent=2)
+        if DEBUG:
             logger.info("Proxy response :" +info)
         return chat_response
 
     def chat_stream(self, chat_request: ChatRequest) -> AsyncIterable[bytes]:
         """Default implementation for Chat Stream API"""
         response = self._invoke_genai(chat_request)
-        if not response.data:
-            raise HTTPException(status_code=500, detail="OCI AI API returned empty response")
+        if self.provider in ["meta","xai"]:
+            for chunk in response:
+                if DEBUG:
+                    logger.info("Proxy response :" + chunk.decode('utf-8-sig', errors="replace"))
+                yield chunk
+        else:
+            message_id = response.request_id
+            model_id = SUPPORTED_OCIGENAI_CHAT_MODELS[chat_request.model]["model_id"]
+            
+            for stream in response.data.events():
+                chunk = json.loads(stream.data)
+                if DEBUG:
+                    logger.info("OCI response :" + str(chunk))
+                stream_response = ResponseAdapter(self.provider).to_openai_chunk(
+                    message_id=message_id,
+                    model=model_id,
+                    chunk=chunk
+                    )
+                if DEBUG:
+                    logger.info("Proxy response :" + stream_response.model_dump_json())
 
-        message_id = response.request_id
-        model_id = SUPPORTED_OCIGENAI_CHAT_MODELS[chat_request.model]["model_id"]
-        
-        for stream in response.data.events():
-            chunk = json.loads(stream.data)
-            if DEBUG:
-                logger.info("OCI response :" + str(chunk))
-            stream_response = ResponseAdapter(self.provider).to_openai_chunk(
-                message_id=message_id,
-                model=model_id,
-                chunk=chunk
-                )
-            if DEBUG:
-                logger.info("Proxy response :" + stream_response.model_dump_json())
+                yield self.stream_response_to_bytes(stream_response)
 
-            yield self.stream_response_to_bytes(stream_response)
-
-        # return an [DONE] message at the end.
-        yield self.stream_response_to_bytes()
+            # return an [DONE] message at the end.
+            yield self.stream_response_to_bytes()
 
 
 
