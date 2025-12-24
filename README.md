@@ -196,6 +196,8 @@ These settings has default values, you can modify the `config.py` file to change
 | DEFAULT_API_KEYS      | Authorize token for the API                                       | ocigenerativeai     |
 | API_ROUTE_PREFIX      | API url PREDIX                                                    | "/v1"               |
 | AUTH_TYPE             | `API_KEY` or `INSTANCE_PRINCIPAL`                                 | "API_KEY"            |
+| GUNICORN_WORKERS      | number of gunicor workers, impact on the number of concurrent requests  | 4                    |
+| GUNICORN_TIMEOUT      | gunicorn timeout                                                  | 600           |
 
 # Deployment
 
