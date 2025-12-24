@@ -88,12 +88,14 @@ docker run -p 8088:8088 \
     Make sure the `key_file` parameter in user's directory `~/.oci/config` is `~/.oci`, where config and private key located.
 
     ```bash
-    docker build -t oci_genai_gateway .
+    docker build -t oci_genai_gateway_local .
 
     docker run -p 8088:8088 \
-            -v ~/.oci:/root/.oci \
-            -it oci_genai_gateway
-			-n oci_genai_gateway
+        -v /root/.oci:/root/.oci \
+        -e OCI_REGION="us-chicago-1" \
+        -e OCI_COMPARTMENT="ocid1.compartment.oc1..xxxxxx" \
+        -it oci_genai_gateway_local \
+        -n oci-genai-access-gateway
     ```
 
 4. Config your application, set `API Key` and `Host`， like this:
