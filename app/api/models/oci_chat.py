@@ -36,6 +36,7 @@ class OCIGenAIModel(BaseChatModel):
 
     def __init__(self):
         self.provider = ""
+        self.compatitble_providers = ["meta","xai","openai"]
         self.generative_ai_inference_client = GenerativeAiInferenceClient(**CLIENT_KWARGS)
         self.init_models()
 
@@ -166,7 +167,7 @@ class OCIGenAIModel(BaseChatModel):
         self.provider = model_info["provider"]
 
         # use openai compatitble API
-        if self.provider in ["meta","xai"]:
+        if self.provider in self.compatitble_providers:
             response = requests.post(
                 url = INFERENCE_ENDPOINT_TEMPLATE_OPENAI.replace("{region}", region),
                 auth=CLIENT_KWARGS["signer"],
@@ -196,7 +197,7 @@ class OCIGenAIModel(BaseChatModel):
         """Default implementation for Chat API."""
         response = self._invoke_genai(chat_request)
 
-        if self.provider in ["meta","xai"]:
+        if self.provider in self.compatitble_providers:
             chat_response = json.loads(response.text)
             info = json.dumps(chat_response, indent=2, ensure_ascii=False)
         else:            
@@ -216,7 +217,7 @@ class OCIGenAIModel(BaseChatModel):
     def chat_stream(self, chat_request: ChatRequest) -> AsyncIterable[bytes]:
         """Default implementation for Chat Stream API"""
         response = self._invoke_genai(chat_request)
-        if self.provider in ["meta","xai"]:
+        if self.provider in self.compatitble_providers:
             for chunk in response:
                 if DEBUG:
                     logger.info("Proxy response :" + chunk.decode('utf-8-sig', errors="replace"))
