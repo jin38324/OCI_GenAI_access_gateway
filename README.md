@@ -20,6 +20,7 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 
 # Change log
 
+- 20260119: Now support **Response API** for grok and openai models
 - 20251223: Now support imported models, see [oracle doc](https://docs.oracle.com/en-us/iaas/Content/generative-ai/imported-models.htm)
 - 20251223: Use OpenAI compatible endpoint `/20231130/actions/v1/chat/completions` for meta and xai models
 - 20251209: Now support **Gemini** models from Google

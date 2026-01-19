@@ -60,7 +60,8 @@ CLIENT_KWARGS.update({'signer': signer})
 CLIENT_KWARGS.update({'region': config.REGION})
 
 INFERENCE_ENDPOINT_TEMPLATE = "https://inference.generativeai.{region}.oci.oraclecloud.com/20231130"
-INFERENCE_ENDPOINT_TEMPLATE_OPENAI = "https://inference.generativeai.{region}.oci.oraclecloud.com/20231130/actions/v1/chat/completions"
+INFERENCE_ENDPOINT_TEMPLATE_OPENAI = "https://inference.generativeai.{region}.oci.oraclecloud.com/openai/v1/chat/completions"
+INFERENCE_ENDPOINT_TEMPLATE_RESPONSES = "https://inference.generativeai.{region}.oci.oraclecloud.com/openai/v1/responses"
 
 # One of NONE|START|END to specify how the API will handle inputs longer than the maximum token length.
 EMBED_TRUNCATE = os.environ.get("EMBED_TRUNCATE", "END")
