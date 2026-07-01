@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 # from mangum import Mangum
 
-from api.routers import model, chat, embeddings
+from api.routers import model, chat, embeddings, rerank
 from api.setting import API_ROUTE_PREFIX, TITLE, DESCRIPTION, SUMMARY, VERSION, PORT, RELOAD, start_info
 
 config = {
@@ -34,6 +34,8 @@ app.add_middleware(
 app.include_router(model.router, prefix=API_ROUTE_PREFIX)
 app.include_router(chat.router, prefix=API_ROUTE_PREFIX)
 app.include_router(embeddings.router, prefix=API_ROUTE_PREFIX)
+app.include_router(rerank.v1_router, prefix=API_ROUTE_PREFIX)
+app.include_router(rerank.router, prefix="/v2")
 
 
 @app.get("/health")

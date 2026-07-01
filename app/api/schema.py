@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List, Literal, Dict, Iterable, Union
 from typing_extensions import TypeAlias
 
@@ -28,6 +28,45 @@ from openai.types import Model
 class Models(BaseModel):
     object: str | None = "list"
     data: List[Model]
+
+
+class RerankRequest(BaseModel):
+    """Cohere v2-compatible rerank request."""
+
+    model: Optional[str] = Field(default=None, min_length=1)
+    query: str = Field(min_length=1)
+    documents: List[str] = Field(min_length=1)
+    top_n: Optional[int] = Field(default=None, ge=1)
+    max_tokens_per_doc: Optional[int] = Field(default=4096, ge=1)
+    priority: Optional[int] = Field(default=None, ge=0, le=999)
+
+
+class RerankResult(BaseModel):
+    index: int
+    relevance_score: float
+
+
+class RerankApiVersion(BaseModel):
+    version: str = "2"
+    is_experimental: bool = False
+
+
+class RerankMeta(BaseModel):
+    api_version: RerankApiVersion = Field(default_factory=RerankApiVersion)
+
+
+class RerankResponse(BaseModel):
+    """Cohere v2-compatible rerank response."""
+
+    id: str
+    results: List[RerankResult]
+    meta: RerankMeta = Field(default_factory=RerankMeta)
+
+
+class RerankResultsResponse(BaseModel):
+    """Minimal /v1/rerank response used by external RAG clients."""
+
+    results: List[RerankResult]
 
 from openai.types.chat.chat_completion_user_message_param import ChatCompletionUserMessageParam
 from openai.types.chat.chat_completion_assistant_message_param import ChatCompletionAssistantMessageParam
@@ -94,5 +133,3 @@ class ChatRequest(BaseModel):
     # top_logprobs: Optional[int]    
     # user: Optional[str]    
     # web_search_options: Optional[completion_create_params.WebSearchOptions]
-
-

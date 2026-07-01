@@ -69,10 +69,15 @@ EMBED_TRUNCATE = os.environ.get("EMBED_TRUNCATE", "END")
 
 OCI_REGION = os.environ.get("OCI_REGION", config.REGION)
 OCI_COMPARTMENT = os.environ.get("OCI_COMPARTMENT", config.OCI_COMPARTMENT)
+OCI_RERANK_DEFAULT_MODEL = os.environ.get(
+    "OCI_RERANK_DEFAULT_MODEL",
+    config.OCI_RERANK_DEFAULT_MODEL,
+)
 
 # If env is setting, infos will get from API
 if OCI_REGION and OCI_COMPARTMENT:
     SUPPORTED_OCIGENAI_EMBEDDING_MODELS = {}
+    SUPPORTED_OCIGENAI_RERANK_MODELS = {}
     SUPPORTED_OCIGENAI_CHAT_MODELS = {}
     SUPPORTED_OCIODSC_CHAT_MODELS = {}
 else:
@@ -94,7 +99,7 @@ else:
 
     def get_supported_models(
         model_settings: list[dict], 
-        capability: Literal["embedding", "ondemand", "dedicated", "datascience"]
+        capability: Literal["embedding", "rerank", "ondemand", "dedicated", "datascience"]
         ) -> dict:
         models = {}
         for model in model_settings:
@@ -110,6 +115,12 @@ else:
     MODEL_SETTINGS = get_models_from_yaml(os.path.join(parent_dir, MODEL_FILE))
 
     SUPPORTED_OCIGENAI_EMBEDDING_MODELS = get_supported_models(MODEL_SETTINGS,"embedding")
+    configured_rerank_models = get_supported_models(MODEL_SETTINGS,"rerank")
+    SUPPORTED_OCIGENAI_RERANK_MODELS = {
+        model_name: model_info
+        for model_name, model_info in configured_rerank_models.items()
+        if model_name == OCI_RERANK_DEFAULT_MODEL
+    }
     SUPPORTED_OCIGENAI_CHAT_MODELS = get_supported_models(MODEL_SETTINGS,"ondemand") | get_supported_models(MODEL_SETTINGS,"dedicated")
     SUPPORTED_OCIODSC_CHAT_MODELS = get_supported_models(MODEL_SETTINGS,"datascience")
 

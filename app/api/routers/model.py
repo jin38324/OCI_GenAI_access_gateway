@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 
 from api.auth import api_key_auth
 from api.models.oci_chat import OCIGenAIModel
+from api.models.oci_rerank import OCIGenAIRerankModel
 #from api.models.ociodsc import OCIOdscModel
 from api.schema import Models, Model
 
@@ -14,8 +15,9 @@ router = APIRouter(
 )
 
 chat_model = OCIGenAIModel()
+rerank_model = OCIGenAIRerankModel()
 #odsc_model = OCIOdscModel()
-all_models = chat_model.list_models() #+ odsc_model.list_models()
+all_models = list(dict.fromkeys(chat_model.list_models() + rerank_model.list_models()))
 
 
 async def validate_model_id(model_id: str):

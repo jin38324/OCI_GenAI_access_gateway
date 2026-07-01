@@ -20,6 +20,7 @@ Oracle已经发布了SDK，可以方便地调用OCI生成式AI服务。但是对
 
 # Change log
 
+- 20260701: Add a Cohere v2-compatible **Rerank API** backed by OCI Generative AI
 - 20260119: Now support **Response API** for grok and openai models
 - 20251223: Now support imported models, see [oracle doc](https://docs.oracle.com/en-us/iaas/Content/generative-ai/imported-models.htm)
 - 20251223: Use OpenAI compatible endpoint `/20231130/actions/v1/chat/completions` for meta and xai models
@@ -172,6 +173,7 @@ Don't worry, most of the models have been written well in the file, you just nee
 You can define 4 types of models:
 - **ondemand**: pre-trained chat model provided by OCI generative AI service, accessed through a unified API.
 - **embedding**: pre-trained embedding model provided by OCI generative AI service, accessed through a unified API.
+- **rerank**: pre-trained or dedicated rerank model provided by OCI Generative AI, exposed through the Cohere-compatible `/v2/rerank` API.
 - **dedicated**: OCI Generative AI service’s proprietary model, the model to be accessed is determined by specifying the endpoint
 - **datascience**: LLM service deployed through the [AI ​​Quick Action function of OCI Data Science](https://docs.oracle.com/en-us/iaas/data-science/using/ai-quick-actions.htm).
 AI Quick Actions makes it easy for you to browse foundation models, and deploy, fine-tune, and evaluate them inside Data Science notebooks.
@@ -225,3 +227,72 @@ for model in models:
 ```
 
 More example please check the notebook [Endpoint test.ipynb](endpoint_test.ipynb)
+
+## Cohere-compatible Rerank API
+
+The gateway exposes OCI Generative AI rerank models through Cohere's v2 request and response format:
+
+```bash
+curl http://localhost:8088/v2/rerank \
+  -H "Authorization: Bearer ocigenerativeai" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "cohere.rerank-v4.0-fast",
+    "query": "What is the capital of the United States?",
+    "documents": [
+      "Carson City is the capital of Nevada.",
+      "Washington, D.C. is the capital of the United States."
+    ],
+    "top_n": 1
+  }'
+```
+
+`model`, `query`, `documents`, `top_n`, `max_tokens_per_doc`, and `priority` follow the Cohere v2 interface. `priority` is accepted for client compatibility but OCI currently does not expose an equivalent request option.
+
+When rerank models are discovered automatically, the gateway exposes the OCI display name (for example, `cohere.rerank-v4.0-fast`) and excludes models whose on-demand retirement date has passed. For a dedicated rerank deployment in `models.yaml` advanced mode, add an `endpoint` containing the Generative AI endpoint OCID.
+
+### Open WebUI external reranker
+
+The same request and response contract is also available at `/v1/rerank`. Configure Open WebUI with the full endpoint URL:
+
+```bash
+RAG_RERANKING_ENGINE=external
+RAG_EXTERNAL_RERANKER_URL=http://your-server:8000/v1/rerank
+RAG_EXTERNAL_RERANKER_API_KEY=ocigenerativeai
+RAG_RERANKING_MODEL=cohere.rerank-v4.0-fast
+```
+
+The reranker registry is separate from chat and embedding registries and contains only the OCI on-demand model configured by `OCI_RERANK_DEFAULT_MODEL`. Its default and supported value is `cohere.rerank-v4.0-fast`; other reranker model names are rejected.
+
+Because the gateway manages a single reranker model, direct `/v1/rerank` requests do not need a `model` field:
+
+```json
+{
+  "query": "서울의 교통카드는 무엇인가요?",
+  "documents": [
+    "서울의 대중교통은 티머니 교통카드 및 후불 신용카드로 결제할 수 있습니다.",
+    "제주도의 대중교통 버스 요금은 거리비례제로 운영됩니다.",
+    "교통카드는 편의점에서 충전하거나 환불받을 수 있습니다."
+  ],
+  "top_n": 2
+}
+```
+
+The optional `model` field is accepted only when its value is `cohere.rerank-v4.0-fast`, for clients such as Open WebUI that always send a model identifier.
+
+The `/v1/rerank` response contains only the ranked results:
+
+```json
+{
+  "results": [
+    {
+      "index": 0,
+      "relevance_score": 0.985
+    },
+    {
+      "index": 2,
+      "relevance_score": 0.452
+    }
+  ]
+}
+```
